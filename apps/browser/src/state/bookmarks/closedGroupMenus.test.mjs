@@ -71,4 +71,8 @@ test("opening a group from its menu creates one same-profile window with its sav
   const made = S().windows[S().windowOrder.find((id) => !before.includes(id))];
   assert.equal(made.profileId, S().windows[windowId].profileId);
   assert.deepEqual(made.tabIds.map((id) => S().tabs[id].url), entry.tabs.map((tab) => tab.url));
+  const group = Object.values(S().groups).find((group) => group.windowId === made.id);
+  assert.equal(group.name, "Research");
+  assert.deepEqual(group.tabIds, made.tabIds);
+  assert.equal(S().closedGroups.length, 0);
 });

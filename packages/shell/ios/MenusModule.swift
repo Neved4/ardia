@@ -79,30 +79,16 @@ public class MenusModule: Module {
       entry.isAlternate = item.alternate
       entry.isEnabled = item.enabled
       entry.state = item.checked ? .on : .off
-      if let favicon = item.favicon.flatMap({ faviconImage($0, budget: &faviconBudget) }) {
-        entry.image = favicon
-        if #available(macOS 27.0, *) { entry.preferredImageVisibility = .visible }
-      } else if let symbol = item.symbol {
-        entry.image = NSImage(systemSymbolName: symbol, accessibilityDescription: nil)
-        if #available(macOS 27.0, *) { entry.preferredImageVisibility = .visible }
-      } else if let hex = item.swatch, let light = RGBA(hex: hex)?.srgb {
+      MenuFavicon.apply(to: entry, favicon: item.favicon, symbol: item.symbol, budget: &faviconBudget)
+      if entry.image == nil, let hex = item.swatch, let light = RGBA(hex: hex)?.srgb {
         let dark = item.swatchDark.flatMap { RGBA(hex: $0)?.srgb } ?? light
         entry.image = light.alphaComponent == 0
           ? emptySwatch() : swatch(NSColor(name: nil) { $0.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua ? dark : light })
-        if #available(macOS 27.0, *) { entry.preferredImageVisibility = .visible }
       }
+      if entry.image != nil, #available(macOS 27.0, *) { entry.preferredImageVisibility = .visible }
       menu.addItem(entry)
     }
     return menu
-  }
-
-  static func faviconImage(_ source: String, budget: inout Int) -> NSImage? {
-    guard budget > 0 else { return nil }
-    budget -= 1
-    guard let url = URL(string: source), url.isFileURL || url.scheme == "data",
-          let data = try? Data(contentsOf: url), let image = NSImage(data: data) else { return nil }
-    image.size = NSSize(width: 16, height: 16)
-    return image
   }
 
   static func swatch(_ color: NSColor) -> NSImage {
