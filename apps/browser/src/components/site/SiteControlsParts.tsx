@@ -1,7 +1,7 @@
 import { Children, forwardRef, type ReactNode } from "react";
 import { Image, Pressable, View, type AccessibilityActionEvent, type GestureResponderEvent } from "react-native";
 import { useTheme } from "../ui/theme";
-import { ContextMenuArea, hairline, menuRowFill, opacity, PANEL, Symbol, Text, useHover } from "../ui";
+import { ContextMenuArea, GlassFill, hairline, liquidGlass, menuRowFill, opacity, PANEL, Symbol, Text, useHover } from "../ui";
 import { siteLine, useSiteTokens, type SiteTokens } from "./tokens";
 
 export const SITE_PANEL = {
@@ -20,6 +20,13 @@ export const SITE_PANEL = {
 export function tileFill(site: SiteTokens, pressed: boolean, hovered: boolean) {
   return pressed ? site.tilePressed : hovered ? site.tileHover : site.tile;
 }
+
+function TileGlass({ fill, radius, hovered, pressed }: { fill: string | undefined; radius: number; hovered: boolean; pressed: boolean }) {
+  if (!liquidGlass || !fill) return null;
+  return <GlassFill fill={fill} radius={radius} state={hovered && !pressed ? "lit" : "rest"} />;
+}
+
+const flatFill = (fill: string | undefined) => (liquidGlass ? undefined : fill);
 
 export function SectionTitle({ title, tight }: { title: string; tight?: boolean }) {
   return (
@@ -87,13 +94,14 @@ export const ActionTile = forwardRef<View, { icon: string; label: string; active
             style={{
               height: SITE_PANEL.actionHeight,
               borderRadius: SITE_PANEL.tileRadius,
-              borderWidth: hairline.ring,
+              borderWidth: liquidGlass ? 0 : hairline.ring,
               borderColor: site.tileStroke,
               alignItems: "center",
               justifyContent: "center",
-              backgroundColor: tileFill(site, pressed, hovered),
+              backgroundColor: flatFill(tileFill(site, pressed, hovered)),
             }}
           >
+            <TileGlass fill={tileFill(site, pressed, hovered)} radius={SITE_PANEL.tileRadius} hovered={hovered} pressed={pressed} />
             <Symbol name={icon} size={15} color={active ? theme.accent : theme.icon} style={{ width: 22, height: 22 }} />
           </View>
         )}
@@ -118,9 +126,10 @@ export const ExtensionTile = forwardRef<
             borderRadius: SITE_PANEL.tileRadius,
             alignItems: "center",
             justifyContent: "center",
-            backgroundColor: tileFill(site, pressed, hovered),
+            backgroundColor: flatFill(tileFill(site, pressed, hovered)),
           }}
         >
+          <TileGlass fill={tileFill(site, pressed, hovered)} radius={SITE_PANEL.tileRadius} hovered={hovered} pressed={pressed} />
           {icon ? (
             <View pointerEvents="none">
               <Image source={{ uri: icon }} style={{ width: 18, height: 18, opacity: dimmed ? opacity.disabled : 1 }} />
@@ -155,6 +164,7 @@ export function SettingRow({
   const theme = useTheme();
   const site = useSiteTokens();
   const { hovered, hoverProps } = useHover();
+  const rowFill = (pressed: boolean) => (onPress && (pressed || hovered) ? menuRowFill(theme, pressed) : undefined);
   const content = (pressed: boolean) => (
     <View
       style={{
@@ -165,9 +175,10 @@ export function SettingRow({
         flexDirection: "row",
         alignItems: "center",
         gap: PANEL.iconGap,
-        backgroundColor: onPress && (pressed || hovered) ? menuRowFill(theme, pressed) : undefined,
+        backgroundColor: flatFill(rowFill(pressed)),
       }}
     >
+      <TileGlass fill={rowFill(pressed)} radius={PANEL.rowRadius} hovered={hovered} pressed={pressed} />
       <View
         style={{
           width: SITE_PANEL.settingBadge,
@@ -217,9 +228,10 @@ export function FooterChip({ icon, title, color, open, onPress }: { icon: string
               flexDirection: "row",
               alignItems: "center",
               gap: 4,
-              backgroundColor: tileFill(site, pressed || open, !!onPress && hovered),
+              backgroundColor: flatFill(tileFill(site, pressed || open, !!onPress && hovered)),
             }}
           >
+            <TileGlass fill={tileFill(site, pressed || open, !!onPress && hovered)} radius={7} hovered={!!onPress && hovered} pressed={pressed || open} />
             <Symbol name={icon} size={11} weight="medium" color={color ?? theme.icon} style={{ width: 14, height: 16 }} />
             <Text lines={1} size="small" weight="medium" style={color ? { color } : undefined}>
               {title}
@@ -247,9 +259,10 @@ export function MoreButton({ open, onPress }: { open: boolean; onPress: () => vo
               borderRadius: SITE_PANEL.footerControl / 2,
               alignItems: "center",
               justifyContent: "center",
-              backgroundColor: tileFill(site, pressed || open, hovered),
+              backgroundColor: flatFill(tileFill(site, pressed || open, hovered)),
             }}
           >
+            <TileGlass fill={tileFill(site, pressed || open, hovered)} radius={SITE_PANEL.footerControl / 2} hovered={hovered} pressed={pressed || open} />
             <Symbol name="ellipsis" size={12} weight="semibold" color={theme.icon} style={{ width: 18, height: 18 }} />
           </View>
         )}
