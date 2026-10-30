@@ -78,7 +78,10 @@ public class MenusModule: Module {
       entry.isAlternate = item.alternate
       entry.isEnabled = item.enabled
       entry.state = item.checked ? .on : .off
-      if let symbol = item.symbol {
+      if let favicon = item.favicon.flatMap(faviconImage) {
+        entry.image = favicon
+        if #available(macOS 27.0, *) { entry.preferredImageVisibility = .visible }
+      } else if let symbol = item.symbol {
         entry.image = NSImage(systemSymbolName: symbol, accessibilityDescription: nil)
         if #available(macOS 27.0, *) { entry.preferredImageVisibility = .visible }
       } else if let hex = item.swatch, let light = RGBA(hex: hex)?.srgb {
@@ -90,6 +93,13 @@ public class MenusModule: Module {
       menu.addItem(entry)
     }
     return menu
+  }
+
+  static func faviconImage(_ source: String) -> NSImage? {
+    guard let url = URL(string: source), url.isFileURL || url.scheme == "data",
+          let data = try? Data(contentsOf: url), let image = NSImage(data: data) else { return nil }
+    image.size = NSSize(width: 16, height: 16)
+    return image
   }
 
   static func swatch(_ color: NSColor) -> NSImage {
