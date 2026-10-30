@@ -340,3 +340,8 @@ export const hairline = { panel: 0.5, ring: 0.5 } as const;
 export const swatch = { size: 20, inset: 2, ring: 2, gap: 7 } as const;
 
 export const opacity = { disabled: 0.45 } as const;
+
+export const controlGlass = {
+  dark: { rest: "rgba(0,0,0,0.25)", lit: "rgba(255,255,255,0)", pressed: "rgba(255,255,255,0.05)", active: "rgba(255,255,255,0.08)" },
+  light: { rest: "rgba(0,0,0,0.16)", lit: "rgba(0,0,0,0.2)", pressed: "rgba(0,0,0,0.26)", active: "rgba(0,0,0,0.1)" },
+} as const;

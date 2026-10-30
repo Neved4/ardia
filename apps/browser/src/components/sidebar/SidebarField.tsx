@@ -2,7 +2,7 @@ import { memo } from "react";
 import { StyleSheet, View } from "react-native";
 import { Button, type IconPalette } from "../ui";
 import { useTheme } from "../ui/theme";
-import { GlassFill, liquidGlass } from "../ui/Glass";
+import { GlassFill, useGlass } from "../ui/Glass";
 import { SIDEBAR_FIELD } from "./geometry";
 import { useSidebarTokens } from "./tokens";
 
@@ -20,13 +20,12 @@ export const SidebarFieldFill = memo(function SidebarFieldFill({
   hovered: boolean;
 }) {
   const theme = useTheme();
-  if (liquidGlass) {
+  if (useGlass()) {
     return (
       <GlassFill
         state={hovered ? "lit" : "rest"}
         radius={SIDEBAR_FIELD.radius}
         border={GLASS_FIELD_BORDER}
-        fill={theme.pinnedResting}
       />
     );
   }

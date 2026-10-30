@@ -1,7 +1,7 @@
 import { Children, forwardRef, type ReactNode } from "react";
 import { Image, Pressable, View, type AccessibilityActionEvent, type GestureResponderEvent } from "react-native";
 import { useTheme } from "../ui/theme";
-import { ContextMenuArea, GlassFill, hairline, liquidGlass, menuRowFill, opacity, PANEL, Symbol, Text, useHover } from "../ui";
+import { ContextMenuArea, GlassFill, hairline, menuRowFill, opacity, PANEL, Symbol, Text, useGlass, useHover } from "../ui";
 import { siteLine, useSiteTokens, type SiteTokens } from "./tokens";
 
 export const SITE_PANEL = {
@@ -22,11 +22,14 @@ export function tileFill(site: SiteTokens, pressed: boolean, hovered: boolean) {
 }
 
 function TileGlass({ fill, radius, hovered, pressed }: { fill: string | undefined; radius: number; hovered: boolean; pressed: boolean }) {
-  if (!liquidGlass || !fill) return null;
-  return <GlassFill fill={fill} radius={radius} state={hovered && !pressed ? "lit" : "rest"} />;
+  if (!useGlass() || !fill) return null;
+  return <GlassFill radius={radius} state={pressed ? "pressed" : hovered ? "lit" : "rest"} />;
 }
 
-const flatFill = (fill: string | undefined) => (liquidGlass ? undefined : fill);
+function useFlatFill() {
+  const glass = useGlass();
+  return (fill: string | undefined) => (glass ? undefined : fill);
+}
 
 export function SectionTitle({ title, tight }: { title: string; tight?: boolean }) {
   return (
@@ -80,6 +83,8 @@ export const ActionTile = forwardRef<View, { icon: string; label: string; active
   const theme = useTheme();
   const site = useSiteTokens();
   const { hovered, hoverProps } = useHover();
+  const glass = useGlass();
+  const flatFill = useFlatFill();
   return (
     <View ref={ref} collapsable={false} tooltip={label} accessibilityLabel={label} style={{ flex: 1 }} {...hoverProps}>
       <Pressable
@@ -94,7 +99,7 @@ export const ActionTile = forwardRef<View, { icon: string; label: string; active
             style={{
               height: SITE_PANEL.actionHeight,
               borderRadius: SITE_PANEL.tileRadius,
-              borderWidth: liquidGlass ? 0 : hairline.ring,
+              borderWidth: glass ? 0 : hairline.ring,
               borderColor: site.tileStroke,
               alignItems: "center",
               justifyContent: "center",
@@ -117,6 +122,7 @@ export const ExtensionTile = forwardRef<
   const theme = useTheme();
   const site = useSiteTokens();
   const { hovered, hoverProps } = useHover();
+  const flatFill = useFlatFill();
   const button = (
     <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={name}>
       {({ pressed }) => (
@@ -164,6 +170,7 @@ export function SettingRow({
   const theme = useTheme();
   const site = useSiteTokens();
   const { hovered, hoverProps } = useHover();
+  const flatFill = useFlatFill();
   const rowFill = (pressed: boolean) => (onPress && (pressed || hovered) ? menuRowFill(theme, pressed) : undefined);
   const content = (pressed: boolean) => (
     <View
@@ -215,6 +222,7 @@ export function FooterChip({ icon, title, color, open, onPress }: { icon: string
   const theme = useTheme();
   const site = useSiteTokens();
   const { hovered, hoverProps } = useHover();
+  const flatFill = useFlatFill();
   return (
     <View {...hoverProps} tooltip={onPress ? (open ? "Hide Connection Details" : "Connection Details") : undefined}>
       <Pressable onPress={onPress} disabled={!onPress} accessibilityRole="button" accessibilityLabel={title}>
@@ -247,6 +255,7 @@ export function MoreButton({ open, onPress }: { open: boolean; onPress: () => vo
   const theme = useTheme();
   const site = useSiteTokens();
   const { hovered, hoverProps } = useHover();
+  const flatFill = useFlatFill();
   const label = open ? "Fewer Site Controls" : "More Site Controls";
   return (
     <View {...hoverProps} tooltip={label}>

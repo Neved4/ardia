@@ -9,10 +9,11 @@ import {
   hex,
   HoverSlot,
   layout,
-  liquidGlass,
   MenuSeparator,
   PANEL,
   Text,
+  useGlass,
+  useGlassLook,
   useHover,
   usePopoverMotion,
   usePopoverMotionStyle,
@@ -34,7 +35,7 @@ import { PROFILE_DOTS_HEIGHT } from "../profiles/ProfileDots";
 import { openInternalPage } from "../../state/pages/urls";
 import { useSidebarWidth } from "../../state/sidebar/hooks";
 import { hairline, shadow } from "../ui/tokens";
-import { glassTint } from "../ui/Glass";
+import { panelGlassTint } from "../ui/Glass";
 import { DOWNLOADS_PANEL, type DownloadsPlacement } from "./downloadsPlacement";
 import { dangerWarning, downloadStatus } from "../../state/downloads/status";
 import { useDownloadView } from "./useDownloadView";
@@ -156,6 +157,7 @@ function PanelBackground({ placement }: { placement: DownloadsPlacement }) {
   const theme = useTheme();
   const colors = useDownloadsColors();
   const level = shadow.popover;
+  const glass = useGlassLook();
   return (
     <PopoverBubble
       material="popover"
@@ -165,10 +167,10 @@ function PanelBackground({ placement }: { placement: DownloadsPlacement }) {
       arrowX={placement.arrowX}
       arrowWidth={DOWNLOADS_PANEL.arrowWidth}
       arrowHeight={DOWNLOADS_PANEL.arrowHeight}
-      glass={liquidGlass}
-      tint={liquidGlass ? glassTint(theme, theme.panel, "panel", "rest") : hex(colors.bubbleTint)}
+      glass={glass.panes}
+      tint={glass.panes ? panelGlassTint(theme, theme.panel, glass.tinted) : hex(colors.bubbleTint)}
       edgeColor={hex(theme.popoverBorder)}
-      edgeWidth={liquidGlass ? 0 : hairline.panel}
+      edgeWidth={glass.panes ? 0 : hairline.panel}
       shadowOpacity={theme.dark ? level.opacity.dark : level.opacity.light}
       shadowRadius={level.radius}
       shadowOffsetY={level.offset[1]}
@@ -193,6 +195,7 @@ function DownloadRow({ d, windowId }: { d: Download; windowId: string }) {
   const colors = useDownloadsColors();
   const { hovered, hoverProps } = useHover();
   const { exists, done, progress, blocked } = useDownloadView(d);
+  const glass = useGlass();
   return (
     <View {...hoverProps}>
       <MouseArea path={done ? d.path : null}>
@@ -207,7 +210,7 @@ function DownloadRow({ d, windowId }: { d: Download; windowId: string }) {
                   paddingHorizontal: PANEL.rowPadding,
                   height: L.row,
                   borderRadius: PANEL.rowRadius,
-                  backgroundColor: liquidGlass ? undefined : downloadsRowFill(theme, hovered, pressed && done),
+                  backgroundColor: glass ? undefined : downloadsRowFill(theme, hovered, pressed && done),
                 }}
               >
                 <DownloadsRowGlass fill={downloadsRowFill(theme, hovered, pressed && done)} pressed={pressed && done} />
@@ -320,6 +323,6 @@ export function DownloadMagnet() {
 }
 
 function DownloadsRowGlass({ fill, pressed }: { fill: string | undefined; pressed: boolean }) {
-  if (!liquidGlass || !fill) return null;
-  return <GlassFill fill={fill} radius={PANEL.rowRadius} state={pressed ? "rest" : "lit"} />;
+  if (!useGlass() || !fill) return null;
+  return <GlassFill radius={PANEL.rowRadius} state={pressed ? "pressed" : "lit"} />;
 }

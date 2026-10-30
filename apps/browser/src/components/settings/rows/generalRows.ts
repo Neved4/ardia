@@ -248,6 +248,29 @@ export const generalRows = {
       },
     },
     {
+      section: "Interface Style",
+      rows: {
+        interfaceStyle: {
+          title: "Interface style",
+          description: "Glass draws the pinned tiles, fields and buttons in macOS Liquid Glass. Classic keeps them flat, like Dia.",
+          keywords: ["liquid glass", "glass", "classic", "flat", "translucent", "transparency", "glow", "frosted"],
+          shown: (_, env) => !!env.glass,
+        },
+        glassTintWithTheme: {
+          title: "Tint glass with the profile colour",
+          description: "Off, the glass stays neutral grey whatever the profile's colour.",
+          keywords: ["liquid glass", "tint", "colour", "color", "profile colour", "theme"],
+          shown: (s, env) => !!env.glass && s.interfaceStyle === "glass",
+        },
+        glassPanes: {
+          title: "Use glass for panels",
+          description: "Downloads and the site controls panel take glass too. Off, they keep the frosted menu look.",
+          keywords: ["liquid glass", "panels", "panes", "downloads", "site controls", "popover"],
+          shown: (s, env) => !!env.glass && s.interfaceStyle === "glass",
+        },
+      },
+    },
+    {
       section: "Address Bar",
       rows: {
         addressBar: { title: "Address Bar", description: "In the toolbar or in the sidebar.", keywords: ["url bar", "location bar", "toolbar"] },

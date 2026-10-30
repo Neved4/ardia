@@ -7,7 +7,7 @@ import { useTheme } from "./theme";
 import { radius, shadow, space, font as typeScale, weight } from "./tokens";
 import { useHover } from "./useHover";
 import { Panel, type PanelProps } from "./Panel";
-import { liquidGlass } from "./Glass";
+import { useGlass } from "./Glass";
 
 export const POPOVER_MARGIN = 8;
 
@@ -123,9 +123,10 @@ export function Popover({
 
 export function PopoverSurface({ children, glass = false, ...props }: Omit<PanelProps, "fill" | "radius" | "border" | "borderWidth" | "shadow" | "glass"> & { glass?: boolean }) {
   const theme = useTheme();
-  if (glass && liquidGlass)
+  const paneGlass = useGlass("panes");
+  if (glass && paneGlass)
     return (
-      <Panel {...props} glass="panel" fill={theme.panel} radius={PANEL.radius}>
+      <Panel {...props} glass fill={theme.panel} radius={PANEL.radius}>
         {children}
       </Panel>
     );
