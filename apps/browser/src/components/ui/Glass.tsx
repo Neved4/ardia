@@ -45,14 +45,17 @@ export const GlassFill = memo(function GlassFill({
   state = "rest",
   panelFill,
   dark,
+  theme: shownTheme,
 }: {
   radius: number;
   border?: number;
   state?: GlassState;
   panelFill?: string;
   dark?: boolean;
+  theme?: Theme;
 }) {
-  const theme = useTheme();
+  const contextTheme = useTheme();
+  const theme = shownTheme ?? contextTheme;
   const { tinted } = useGlassLook();
   const shownDark = dark ?? theme.dark;
   const frame = { position: "absolute", top: -border, left: -border, right: -border, bottom: -border } as const;
