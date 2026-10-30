@@ -2,14 +2,16 @@ import { useEffect, useLayoutEffect, useMemo, useRef, type ReactNode } from "rea
 import { Animated, StyleSheet, View } from "react-native";
 import { DockSelection, radius, Surface } from "../ui";
 import { hex, layout, useTheme } from "../ui/theme";
-import { useTileTheme } from "../../state/favicons/tileTheme";
+import { useTileTheme, type TileTheme } from "../../state/favicons/tileTheme";
 import { useTab } from "../../state/browser/hooks";
+import { GlassFill, liquidGlass } from "../ui/Glass";
 import { SLIDE } from "../tabstrip/stripReorder";
 import { TabBadges } from "../media/TabBadges";
 import { TabIcon } from "./TabIcon";
 import { sidebarTokens, TILE_GLOW, useSidebarTokens } from "./tokens";
 
 const SELECTION_STROKE = 3;
+const GLASS_RING = 2;
 export const TILE_RADIUS = radius.card;
 
 type FaceState = { width: number; active: boolean; selected: boolean; hovered: boolean; pressed: boolean };
@@ -26,6 +28,13 @@ export function TileFace({ tabId, badge, ...state }: FaceState & { tabId: string
       <TabBadges tabId={tabId} />
     </View>
   );
+  if (liquidGlass)
+    return (
+      <GlassTile {...state} tileTheme={tileTheme}>
+        {icon}
+        {badge}
+      </GlassTile>
+    );
   if (active && tileTheme)
     return (
       <DockSelection
@@ -88,6 +97,12 @@ export function TileFace({ tabId, badge, ...state }: FaceState & { tabId: string
 export function RestingTile({ width, selected, hovered, pressed, children }: Omit<FaceState, "active"> & { children: ReactNode }) {
   const theme = useTheme();
   const tokens = useSidebarTokens();
+  if (liquidGlass)
+    return (
+      <GlassTile width={width} active={false} selected={selected} hovered={hovered} pressed={pressed} tileTheme={null}>
+        {children}
+      </GlassTile>
+    );
   return (
     <View
       style={{
@@ -101,6 +116,34 @@ export function RestingTile({ width, selected, hovered, pressed, children }: Omi
         justifyContent: "center",
       }}
     >
+      {children}
+    </View>
+  );
+}
+
+function GlassTile({ width, active, selected, hovered, pressed, tileTheme, children }: FaceState & { tileTheme: TileTheme | null; children: ReactNode }) {
+  const theme = useTheme();
+  const tokens = useSidebarTokens();
+  const fill = active ? theme.pinnedSelectedFill : pressed ? theme.tabPressed : hovered || selected ? theme.tabHover : theme.pinnedResting;
+  return (
+    <View style={{ width, height: layout.pinnedHeight, alignItems: "center", justifyContent: "center" }}>
+      <GlassFill radius={TILE_RADIUS} fill={fill} state={pressed ? "rest" : active ? "active" : hovered || selected ? "lit" : "rest"} />
+      {active ? (
+        <DockSelection
+          image={tileTheme?.image}
+          emoji={tileTheme?.emoji}
+          theme={tileTheme?.theme.kind}
+          fill={tileTheme?.theme.kind === "template" ? tileTheme.theme.fill : undefined}
+          cornerRadius={TILE_RADIUS}
+          strokeWidth={GLASS_RING}
+          dark={theme.dark}
+          glass
+          colorRing
+          style={StyleSheet.absoluteFill}
+        />
+      ) : selected ? (
+        <View pointerEvents="none" style={[StyleSheet.absoluteFill, { borderRadius: TILE_RADIUS, borderWidth: 1, borderColor: tokens.dragBorder }]} />
+      ) : null}
       {children}
     </View>
   );
