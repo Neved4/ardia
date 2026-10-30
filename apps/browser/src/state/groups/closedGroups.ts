@@ -1,27 +1,33 @@
 import { useBrowser, type BrowserState } from "../browser/store";
+import type { ClosedGroup } from "../browser/types";
 import { isIncognitoProfile } from "../browser/model";
 import { removeTabs } from "../tabs/tabs";
 import { keptDeletedGroups, restoringGroup } from "../pins/closedTabs";
 
-export function closedGroupsForProfile(s: Pick<BrowserState, "profiles" | "closedGroups">, profileId: string) {
-  if (!s.profiles[profileId] || isIncognitoProfile(profileId)) return [];
-  return s.closedGroups.filter((entry) => entry.tabs.length > 0 && entry.tabs.every((tab) => tab.profileId === profileId));
+type ClosedGroupsState = Pick<BrowserState, "profiles" | "closedGroups">;
+const belongsToProfile = (entry: ClosedGroup, profileId: string) => entry.tabs.length > 0 && entry.tabs.every((tab) => tab.profileId === profileId);
+const hasProfile = (s: ClosedGroupsState, profileId: string) => !!s.profiles[profileId] && !isIncognitoProfile(profileId);
+const closedGroupForProfile = (s: ClosedGroupsState, entryId: string, profileId: string) =>
+  hasProfile(s, profileId) ? s.closedGroups.find((entry) => entry.id === entryId && belongsToProfile(entry, profileId)) : undefined;
+
+export function closedGroupsForProfile(s: ClosedGroupsState, profileId: string) {
+  return hasProfile(s, profileId) ? s.closedGroups.filter((entry) => belongsToProfile(entry, profileId)) : [];
 }
 
-export const closedGroupsOnBarForProfile = (s: Pick<BrowserState, "profiles" | "closedGroups">, profileId: string) =>
+export const closedGroupsOnBarForProfile = (s: ClosedGroupsState, profileId: string) =>
   closedGroupsForProfile(s, profileId).filter((entry) => entry.hiddenFromBar !== true);
 
 export function reopenClosedGroup(entryId: string, windowId: string) {
   const s = useBrowser.getState();
   const window = s.windows[windowId];
   if (!window || window.kind !== "main") return;
-  const entry = closedGroupsForProfile(s, window.profileId).find((group) => group.id === entryId);
+  const entry = closedGroupForProfile(s, entryId, window.profileId);
   if (entry) useBrowser.setState(restoringGroup(s, entry, windowId, true));
 }
 
 export function deleteClosedGroup(entryId: string, profileId: string) {
   const s = useBrowser.getState();
-  const entry = closedGroupsForProfile(s, profileId).find((group) => group.id === entryId);
+  const entry = closedGroupForProfile(s, entryId, profileId);
   if (!entry) return;
   useBrowser.setState({
     closedGroups: s.closedGroups.filter((group) => group.id !== entryId),
@@ -31,14 +37,14 @@ export function deleteClosedGroup(entryId: string, profileId: string) {
 
 export function unpinClosedGroup(entryId: string, profileId: string) {
   const s = useBrowser.getState();
-  const entry = closedGroupsForProfile(s, profileId).find((group) => group.id === entryId);
+  const entry = closedGroupForProfile(s, entryId, profileId);
   if (!entry || entry.hiddenFromBar) return;
   useBrowser.setState({ closedGroups: s.closedGroups.map((group) => group.id === entryId ? { ...group, hiddenFromBar: true } : group) });
 }
 
 export function reopenClosedGroupInNewWindow(entryId: string, profileId: string) {
   const s = useBrowser.getState();
-  const entry = closedGroupsForProfile(s, profileId).find((group) => group.id === entryId);
+  const entry = closedGroupForProfile(s, entryId, profileId);
   if (!entry) return;
   const windowId = s.createWindow({ profileId });
   const created = useBrowser.getState();
@@ -50,7 +56,7 @@ export function openClosedGroupTab(entryId: string, index: number, windowId: str
   const s = useBrowser.getState();
   const window = s.windows[windowId];
   if (!window || window.kind !== "main" || !Number.isInteger(index)) return;
-  const entry = closedGroupsForProfile(s, window.profileId).find((group) => group.id === entryId);
+  const entry = closedGroupForProfile(s, entryId, window.profileId);
   const tab = entry?.tabs[index];
   if (tab?.url) s.newTab(windowId, { url: tab.url, profileId: window.profileId });
 }

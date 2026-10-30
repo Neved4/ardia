@@ -11,7 +11,7 @@ import { sameRect } from "./barMotion";
 import { BarButton } from "./BarItem";
 import { useBarSize } from "./barSize";
 import { bookmarksBar } from "./tokens";
-import { closedGroupsLayout } from "./closedGroupsLayout";
+import { barLayout } from "./barLayout";
 
 type Props = { windowId: string; maxWidth: number; onWidth: (width: number) => void };
 
@@ -22,9 +22,9 @@ export function ClosedGroupsBar({ windowId, maxWidth, onWidth }: Props) {
   const size = useBarSize();
   const theme = useTheme();
   const [frames, setFrames] = useState<Record<string, LayoutRectangle>>({});
-  const { width, overflowing, visible } = closedGroupsLayout(
+  const { width, overflowing, visible } = barLayout(
     groups.map((entry) => entry.id), frames, maxWidth,
-    bookmarksBar.overflowWidth, bookmarksBar.closedGroupGap,
+    bookmarksBar.overflowWidth, { gap: bookmarksBar.closedGroupGap, shrink: true },
   );
   const visibleIds = new Set(visible);
   const fits = (id: string) => visibleIds.has(id);

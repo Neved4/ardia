@@ -11,6 +11,7 @@ import { ContextMenuArea, FileDropArea, space, Text, useTheme, type DropUpdate }
 import { ThemeContext } from "../ui/theme";
 import { siteScopedTheme, useEasedColor } from "../ui/toolbarColors";
 import { useSitePalette } from "../toolbar/useSitePalette";
+import { barLayout } from "./barLayout";
 import { BarButton, BarItem, ImportButton } from "./BarItem";
 import { ClosedGroupsBar } from "./ClosedGroupsBar";
 import { measureRect, sameRect, useEased, useSlide } from "./barMotion";
@@ -80,13 +81,9 @@ function Bar({ windowId }: { windowId: string }) {
 
   const reserved = hasOther ? bookmarksBar.otherReserve : 0;
   const available = Math.max(0, width - space.m * 2 - reserved - closedGroupsWidth);
-  const lastFrame = frames[children.at(-1) ?? ""];
-  const overflowing = !!lastFrame && lastFrame.x + lastFrame.width > available;
-  const fits = (id: string) => {
-    const f = frames[id];
-    return !f || f.x + f.width <= available - (overflowing ? bookmarksBar.overflowWidth : 0);
-  };
-  const visible = children.filter(fits);
+  const { visible } = barLayout(children, frames, available, bookmarksBar.overflowWidth, { unmeasuredVisible: true });
+  const visibleIds = new Set(visible);
+  const fits = (id: string) => visibleIds.has(id);
   const hiddenFrom = visible.length;
 
   const draggedHere = source?.kind === "bookmark" && visible.includes(source.id) ? source.id : null;
