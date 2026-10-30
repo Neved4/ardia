@@ -26,7 +26,8 @@ export function ClosedGroupsBar({ windowId, maxWidth, onWidth }: Props) {
     groups.map((entry) => entry.id), frames, maxWidth,
     bookmarksBar.overflowWidth, bookmarksBar.closedGroupGap,
   );
-  const fits = (id: string) => visible.includes(id);
+  const visibleIds = new Set(visible);
+  const fits = (id: string) => visibleIds.has(id);
   const hidden = groups.filter((group) => !fits(group.id));
   useEffect(() => {
     onWidth(shown && groups.length ? width : 0);

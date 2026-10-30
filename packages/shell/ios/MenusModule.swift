@@ -37,7 +37,8 @@ public class MenusModule: Module {
         return
       }
       let target = MenuChoice()
-      let menu = MenusModule.contextMenu(items, target: target)
+      var faviconBudget = 16
+      let menu = MenusModule.contextMenu(items, target: target, faviconBudget: &faviconBudget)
       menu.popUp(positioning: nil, at: NSEvent.mouseLocation, in: nil)
       DispatchQueue.main.async { promise.resolve(target.chosen) }
     }.runOnQueue(.main)
@@ -51,7 +52,7 @@ public class MenusModule: Module {
     AsyncFunction("cancelRecording") { ShortcutRecorder.shared.finish(nil) }.runOnQueue(.main)
   }
 
-  static func contextMenu(_ items: [MenuItem], target: MenuChoice) -> NSMenu {
+  static func contextMenu(_ items: [MenuItem], target: MenuChoice, faviconBudget: inout Int) -> NSMenu {
     let menu = NSMenu()
     menu.autoenablesItems = false
     for item in items {
@@ -62,7 +63,7 @@ public class MenusModule: Module {
       let entry = NSMenuItem(title: item.title, action: nil, keyEquivalent: item.key)
       if !item.modifiers.isEmpty { entry.keyEquivalentModifierMask = ModifierName.flags(item.modifiers) }
       if let children = item.children {
-        entry.submenu = contextMenu(children, target: target)
+        entry.submenu = contextMenu(children, target: target, faviconBudget: &faviconBudget)
       } else if item.share {
         let id = item.id
         let submenu = NSMenu()
@@ -78,7 +79,7 @@ public class MenusModule: Module {
       entry.isAlternate = item.alternate
       entry.isEnabled = item.enabled
       entry.state = item.checked ? .on : .off
-      if let favicon = item.favicon.flatMap(faviconImage) {
+      if let favicon = item.favicon.flatMap({ faviconImage($0, budget: &faviconBudget) }) {
         entry.image = favicon
         if #available(macOS 27.0, *) { entry.preferredImageVisibility = .visible }
       } else if let symbol = item.symbol {
@@ -95,7 +96,9 @@ public class MenusModule: Module {
     return menu
   }
 
-  static func faviconImage(_ source: String) -> NSImage? {
+  static func faviconImage(_ source: String, budget: inout Int) -> NSImage? {
+    guard budget > 0 else { return nil }
+    budget -= 1
     guard let url = URL(string: source), url.isFileURL || url.scheme == "data",
           let data = try? Data(contentsOf: url), let image = NSImage(data: data) else { return nil }
     image.size = NSSize(width: 16, height: 16)

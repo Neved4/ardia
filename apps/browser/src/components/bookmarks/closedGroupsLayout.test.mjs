@@ -14,6 +14,6 @@ test("measured chips reserve overflow space without clipping clickable items", (
 });
 
 test("unmeasured and removed groups do not leave clickable or reserved space", () => {
-  assert.deepEqual(layout(100, ["a"], {}).visible, []);
+  assert.deepEqual(layout(100, ["a"], {}), { width: 100, overflowing: false, visible: [] });
   assert.deepEqual(layout(300, ["a"]), { width: 74, overflowing: false, visible: ["a"] });
 });

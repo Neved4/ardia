@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 const { useBrowser } = await import("../browser/store.ts");
 const { closedGroupMenuItems, openClosedGroupMenu, openClosedGroupsOverflowMenu } = await import("./closedGroupMenus.ts");
+const { activeTabId } = await import("../browser/model.ts");
 const { shellNativeModules } = await import("../../test-native/shell.ts");
 const S = () => useBrowser.getState();
 
@@ -46,6 +47,7 @@ test("overflow can reopen, unpin or open a saved tab without deleting the group"
     await pick(() => openClosedGroupsOverflowMenu(windowId, [entry.id]), (menu) => action(menu[0].children, title));
     if (title === "Open Group") assert.equal(S().closedGroups.length, 0);
     else assert.equal(S().closedGroups[0].hiddenFromBar === true, title === "Unpin Group from Bookmarks Bar");
+    if (title === "example.com") assert.equal(S().tabs[activeTabId(S(), windowId)].url, entry.tabs[0].url);
     assert.equal(S().deletedGroups.length, 0);
   }
 });
@@ -59,4 +61,14 @@ test("a menu cannot act after its group disappears or the window changes profile
     });
     assert.equal(Object.keys(S().windows).length, 1);
   }
+});
+
+test("opening a group from its menu creates one same-profile window with its saved tabs", async () => {
+  const { windowId, entry } = setup();
+  const before = [...S().windowOrder];
+  await pick(() => openClosedGroupMenu(windowId, entry.id), (items) => action(items, "Open Group in New Window"));
+  assert.equal(S().windowOrder.length, before.length + 1);
+  const made = S().windows[S().windowOrder.find((id) => !before.includes(id))];
+  assert.equal(made.profileId, S().windows[windowId].profileId);
+  assert.deepEqual(made.tabIds.map((id) => S().tabs[id].url), entry.tabs.map((tab) => tab.url));
 });
