@@ -13,7 +13,7 @@ import { siteScopedTheme, useEasedColor } from "../ui/toolbarColors";
 import { useSitePalette } from "../toolbar/useSitePalette";
 import { BarButton, BarItem, ImportButton } from "./BarItem";
 import { ClosedGroupsBar } from "./ClosedGroupsBar";
-import { measureRect, useEased, useSlide } from "./barMotion";
+import { measureRect, sameRect, useEased, useSlide } from "./barMotion";
 import { openBarMenu } from "../../state/bookmarks/barMenus";
 import { useBarSize, useBookmarksBarHeight } from "./barSize";
 import { bookmarksBar, type BarSize } from "./tokens";
@@ -250,7 +250,6 @@ function DropLine({ x, size, color }: { x: number | null; size: BarSize; color: 
 
 const EMPTY: string[] = [];
 
-const sameRect = (a: LayoutRectangle | undefined, b: LayoutRectangle) => !!a && a.x === b.x && a.y === b.y && a.width === b.width && a.height === b.height;
 
 const HINT = { marginLeft: space.xs } as const;
 const OTHER = { flexDirection: "row", alignItems: "center" } as const;

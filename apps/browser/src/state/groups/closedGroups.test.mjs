@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 const { useBrowser } = await import("../browser/store.ts");
-const { closedGroupsForProfile, reopenClosedGroup, deleteClosedGroup } = await import("./closedGroups.ts");
+const { closedGroupsForProfile, closedGroupsOnBarForProfile, reopenClosedGroup, deleteClosedGroup, unpinClosedGroup, reopenClosedGroupInNewWindow, openClosedGroupTab } = await import("./closedGroups.ts");
 const { startPersistence, flushPersistence, loadSession } = await import("../session/persist.ts");
 const stub = await import("../../test-native/index.ts");
 const S = () => useBrowser.getState();
@@ -82,4 +82,73 @@ test("closed groups survive saving and relaunching without restoring their live 
   S().hydrate(loadSession());
   assert.equal(S().closedGroups[0].id, entry.id);
   assert.ok(ids.every((id) => !S().tabs[id]));
+});
+
+
+test("unpinning hides only the selected bar entry and persists its History snapshot", () => {
+  stub.docs.clear();
+  const stop = startPersistence();
+  const windowId = setup();
+  const { entry } = close(windowId);
+  const second = close(windowId, "Other").entry;
+  unpinClosedGroup(entry.id, "missing");
+  assert.equal(closedGroupsOnBarForProfile(S(), "default").length, 2);
+  unpinClosedGroup(entry.id, "default");
+  assert.deepEqual(closedGroupsOnBarForProfile(S(), "default").map((group) => group.id), [second.id]);
+  assert.equal(closedGroupsForProfile(S(), "default").length, 2);
+  assert.equal(S().deletedGroups.length, 0);
+  flushPersistence();
+  stop();
+  S().hydrate(loadSession());
+  assert.equal(S().closedGroups.find((group) => group.id === entry.id).hiddenFromBar, true);
+  S().restoreClosed(entry.id, windowId);
+  assert.ok(Object.values(S().groups).some((group) => group.name === "Research"));
+});
+
+test("opening a closed group in a new window retains its profile and has no extra empty tab", () => {
+  const original = setup();
+  const profileId = S().createProfile({ name: "Work" });
+  const work = S().createWindow({ profileId });
+  const { entry } = close(work);
+  const count = S().windowOrder.length;
+  reopenClosedGroupInNewWindow(entry.id, "default");
+  assert.equal(S().windowOrder.length, count);
+  reopenClosedGroupInNewWindow(entry.id, profileId);
+  const made = S().windowOrder.find((id) => id !== original && id !== work);
+  assert.equal(S().windows[made].profileId, profileId);
+  assert.equal(S().windows[made].tabIds.length, entry.tabs.length);
+  assert.ok(S().windows[made].tabIds.every((id) => S().tabs[id].url));
+  assert.equal(S().closedGroups.length, 0);
+});
+
+test("opening one saved URL keeps the closed group and rejects invalid indices and other profiles", () => {
+  const windowId = setup();
+  const { entry } = close(windowId);
+  const count = S().windows[windowId].tabIds.length;
+  for (const index of [-1, 0.5, 99, NaN]) openClosedGroupTab(entry.id, index, windowId);
+  const other = S().createWindow({ profileId: S().createProfile({ name: "Other" }) });
+  openClosedGroupTab(entry.id, 0, other);
+  assert.equal(S().windows[windowId].tabIds.length, count);
+  assert.equal(S().windows[other].tabIds.length, 1);
+  openClosedGroupTab(entry.id, 1, windowId);
+  assert.equal(S().windows[windowId].tabIds.length, count + 1);
+  const id = S().windows[windowId].activeTabIds.default;
+  assert.equal(S().tabs[id].url, entry.tabs[1].url);
+  assert.equal(S().closedGroups[0].id, entry.id);
+});
+
+test("version nine closed groups remain visible after the bar visibility migration", () => {
+  stub.docs.clear();
+  const stop = startPersistence();
+  const windowId = setup();
+  close(windowId);
+  flushPersistence();
+  stop();
+  const saved = JSON.parse(stub.docs.get("session.json"));
+  saved.version = 9;
+  saved.closedGroups.forEach((group) => delete group.hiddenFromBar);
+  stub.docs.set("session.json", JSON.stringify(saved));
+  S().hydrate(loadSession());
+  assert.equal(S().closedGroups[0].hiddenFromBar, false);
+  assert.equal(closedGroupsOnBarForProfile(S(), "default").length, 1);
 });
