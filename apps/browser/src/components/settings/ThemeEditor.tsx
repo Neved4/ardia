@@ -26,6 +26,7 @@ import { importArcTheme } from "../../state/profiles/arcThemes";
 import { Row, SectionHeader } from "./Form";
 import { ColorPad, DirectionDial, LABEL, Labelled, LightnessBar, Preview, Slider } from "./ThemeControls";
 import { settingsInk } from "./tokens";
+import { GlassThemeRows } from "./GlassThemeRows";
 
 export { arcThemeChoices, importArcTheme } from "../../state/profiles/arcThemes";
 
@@ -262,6 +263,7 @@ function ThemeEditor({
             </Text>
           ) : null}
         </View>
+        <GlassThemeRows />
       </View>
     </View>
   );
