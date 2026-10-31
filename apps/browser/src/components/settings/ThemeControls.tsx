@@ -215,6 +215,22 @@ export function Slider({
     </View>
   );
 }
+export function AmountSlider({ value, onChange, tooltip }: { value: number; onChange: (value: number, settle: boolean) => void; tooltip?: string }) {
+  const ui = useTheme();
+  return (
+    <Track
+      value={value}
+      onChange={onChange}
+      tooltip={tooltip}
+      bar={
+        <View style={{ height: 4, borderRadius: 2, backgroundColor: ui.switchOff, overflow: "hidden" }}>
+          <View style={{ width: `${value * 100}%`, height: 4, backgroundColor: ui.formAccent }} />
+        </View>
+      }
+    />
+  );
+}
+
 function Track({
   value,
   onChange,

@@ -168,7 +168,7 @@ function PanelBackground({ placement }: { placement: DownloadsPlacement }) {
       arrowWidth={DOWNLOADS_PANEL.arrowWidth}
       arrowHeight={DOWNLOADS_PANEL.arrowHeight}
       glass={glass.panes}
-      tint={glass.panes ? panelGlassTint(theme, theme.panel, glass.tinted) : hex(colors.bubbleTint)}
+      tint={glass.panes ? panelGlassTint(theme, theme.panel, glass.tint) : hex(colors.bubbleTint)}
       edgeColor={hex(theme.popoverBorder)}
       edgeWidth={glass.panes ? 0 : hairline.panel}
       shadowOpacity={theme.dark ? level.opacity.dark : level.opacity.light}

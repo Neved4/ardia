@@ -262,6 +262,12 @@ export const generalRows = {
           keywords: ["liquid glass", "tint", "colour", "color", "profile colour", "theme"],
           shown: (s, env) => !!env.glass && s.interfaceStyle === "glass",
         },
+        glassTintAmount: {
+          title: "Tint amount",
+          description: "How much of the profile colour the glass takes, from a hint to fully coloured.",
+          keywords: ["liquid glass", "tint", "strength", "intensity", "colour", "color", "glossy"],
+          shown: (s, env) => !!env.glass && s.interfaceStyle === "glass" && s.glassTintWithTheme,
+        },
         glassPanes: {
           title: "Use glass for panels",
           description: "Downloads and the site controls panel take glass too. Off, they keep the frosted menu look.",

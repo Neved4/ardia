@@ -7,16 +7,15 @@ import { parseColor, toHex } from "../../lib/color";
 export const liquidGlass = isLiquidGlass();
 
 const PROFILE_SHARE = 0.15;
-const CONTROL_PROFILE_SHARE = 0.8;
-const CONTROL_TINT_LIFT = 0.1;
+const TINT_LIFT_PER_SHARE = 0.125;
 const PANEL_TINT_SHARE = 0.85;
 const GLASS_STYLE = { control: "clear", panel: "regular" } as const;
 
 export type GlassKind = keyof typeof GLASS_STYLE;
 export type GlassState = keyof typeof controlGlass.dark;
-export type GlassLook = { controls: boolean; panes: boolean; tinted: boolean };
+export type GlassLook = { controls: boolean; panes: boolean; tint: number };
 
-export const GlassLookContext = createContext<GlassLook>({ controls: liquidGlass, panes: liquidGlass, tinted: false });
+export const GlassLookContext = createContext<GlassLook>({ controls: liquidGlass, panes: liquidGlass, tint: 0 });
 
 export const useGlassLook = () => useContext(GlassLookContext);
 
@@ -32,15 +31,15 @@ function profileTinted(theme: Theme, color: string, tinted: boolean, share = PRO
   return toHex([mix(r, pr), mix(g, pg), mix(b, pb), a * 255]);
 }
 
-export function controlGlassTint(theme: Theme, state: GlassState, tinted: boolean, dark = theme.dark): string {
+export function controlGlassTint(theme: Theme, state: GlassState, tint: number, dark = theme.dark): string {
   const [r, g, b, a] = parseColor(controlGlass[dark ? "dark" : "light"][state]);
-  const lifted = toHex([r, g, b, Math.min(1, a + (tinted ? CONTROL_TINT_LIFT : 0)) * 255]);
-  return profileTinted(theme, lifted, tinted, CONTROL_PROFILE_SHARE);
+  const lifted = toHex([r, g, b, Math.min(1, a + tint * TINT_LIFT_PER_SHARE) * 255]);
+  return profileTinted(theme, lifted, tint > 0, tint);
 }
 
-export function panelGlassTint(theme: Theme, fill: string, tinted: boolean): string {
+export function panelGlassTint(theme: Theme, fill: string, tint: number): string {
   const [r, g, b, a] = parseColor(fill);
-  return profileTinted(theme, toHex([r, g, b, Math.min(1, a * PANEL_TINT_SHARE) * 255]), tinted);
+  return profileTinted(theme, toHex([r, g, b, Math.min(1, a * PANEL_TINT_SHARE) * 255]), tint > 0);
 }
 
 export const GlassFill = memo(function GlassFill({
@@ -60,7 +59,7 @@ export const GlassFill = memo(function GlassFill({
 }) {
   const contextTheme = useTheme();
   const theme = shownTheme ?? contextTheme;
-  const { tinted } = useGlassLook();
+  const { tint } = useGlassLook();
   const shownDark = dark ?? theme.dark;
   const frame = { position: "absolute", top: -border, left: -border, right: -border, bottom: -border } as const;
   return (
@@ -68,7 +67,7 @@ export const GlassFill = memo(function GlassFill({
       pointerEvents="none"
       glassStyle={GLASS_STYLE[panelFill ? "panel" : "control"]}
       cornerRadius={radius}
-      tint={panelFill ? panelGlassTint(theme, panelFill, tinted) : controlGlassTint(theme, state, tinted, shownDark)}
+      tint={panelFill ? panelGlassTint(theme, panelFill, tint) : controlGlassTint(theme, state, tint, shownDark)}
       dark={shownDark}
       style={frame}
     />

@@ -7,6 +7,7 @@ import { updateSettings } from "../../../state/settings/actions";
 import type { Settings } from "../../../state/settings/settings";
 import { Group, Row, SectionHeader } from "../Form";
 import { PictureChoice } from "../PictureChoice";
+import { AmountSlider } from "../ThemeControls";
 import { BookmarksBarSection } from "./BookmarksBarSection";
 import { modePreview, stylePreview } from "../tokens";
 import { useSettingsColors } from "../useSettingsColors";
@@ -46,6 +47,8 @@ export function AppearancePane() {
   );
 }
 
+const TINT_SLIDER_WIDTH = 160;
+
 const STYLES: { value: Settings["interfaceStyle"]; title: string }[] = [
   { value: "glass", title: "Glass" },
   { value: "classic", title: "Classic" },
@@ -54,6 +57,7 @@ const STYLES: { value: Settings["interfaceStyle"]; title: string }[] = [
 function InterfaceStylePicker() {
   const style = useSettings((s) => s.interfaceStyle);
   const tinted = useSettings((s) => s.glassTintWithTheme);
+  const tintAmount = useSettings((s) => s.glassTintAmount);
   const panes = useSettings((s) => s.glassPanes);
   if (!liquidGlass) return null;
   return (
@@ -68,6 +72,13 @@ function InterfaceStylePicker() {
         <Row anchor="appearance.glassTintWithTheme">
           <Toggle value={tinted} onChange={(v) => updateSettings({ glassTintWithTheme: v })} />
         </Row>
+        {tinted ? (
+          <Row anchor="appearance.glassTintAmount">
+            <View style={{ width: TINT_SLIDER_WIDTH }}>
+              <AmountSlider value={tintAmount} tooltip={`${Math.round(tintAmount * 100)} %`} onChange={(v) => updateSettings({ glassTintAmount: Math.round(v * 100) / 100 })} />
+            </View>
+          </Row>
+        ) : null}
         <Row anchor="appearance.glassPanes">
           <Toggle value={panes} onChange={(v) => updateSettings({ glassPanes: v })} />
         </Row>

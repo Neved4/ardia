@@ -31,6 +31,7 @@ const hasStrings = (v: unknown, keys: readonly string[]) => isFields(v) && keys.
 const flag = (d: boolean, synced = false): SettingSpec<boolean> => ({ default: d, valid: (v) => typeof v === "boolean", synced });
 const text = (d: string, synced = false): SettingSpec<string> => ({ default: d, valid: isString, synced });
 const width = (d: number): SettingSpec<number> => ({ default: d, valid: isWidth, synced: false });
+const fraction = (d: number, synced = false): SettingSpec<number> => ({ default: d, valid: (v) => typeof v === "number" && v >= 0 && v <= 1, synced });
 const oneOf = <const V extends readonly string[]>(values: V, d: V[number], synced = false): SettingSpec<V[number]> & { values: V } => ({
   default: d,
   values,
@@ -83,6 +84,7 @@ export const SETTING_SPECS = {
   interfaceStyle: oneOf(["glass", "classic"], "glass", SYNCED),
   glassPanes: flag(true, SYNCED),
   glassTintWithTheme: flag(false, SYNCED),
+  glassTintAmount: fraction(0.8, SYNCED),
   pageScrollBars: oneOf(["system", "thin"], "system", SYNCED),
   fadeUnloadedTabs: flag(false, SYNCED),
   warnBeforeClosingTabGroup: flag(true, SYNCED),
