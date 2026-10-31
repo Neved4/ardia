@@ -64,10 +64,10 @@ export const QUESTIONS: Record<Exclude<OnboardingStep, "intro">, Question[]> = {
     { id: "tabsMore", keys: ["balancedTopApps", "peekModifier", "undoReopensClosedTab", "cmdClickCreatesTabGroup"] },
   ],
   look: [
-    { id: "color", keys: ["glassTintWithTheme", "glassTintAmount"] },
+    { id: "color", keys: [] },
     { id: "switcher", keys: ["profileSwitcherIcons"], askedWithPreset: true },
     { id: "appearance", keys: ["appearance"] },
-    { id: "style", keys: ["interfaceStyle"], askedWithPreset: true },
+    { id: "style", keys: ["interfaceStyle", "glassTintWithTheme", "glassTintAmount"], askedWithPreset: true },
     { id: "siteColor", keys: ["extendWebsiteColor"] },
     { id: "lookMore", keys: ["hideToolbarWhileScrolling", "bookmarksBar"] },
   ],

@@ -206,7 +206,19 @@ export function Slider({
       }
     />
   );
-  if (stacked) return <Labelled label={label}>{track}</Labelled>;
+  if (stacked)
+    return (
+      <Labelled label={label}>
+        {children ? (
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+            <View style={{ flex: 1 }}>{track}</View>
+            {children}
+          </View>
+        ) : (
+          track
+        )}
+      </Labelled>
+    );
   return (
     <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
       <Text numberOfLines={1} style={{ width: LABEL, ...font.small, color: ui.textPrimary }}>{label}</Text>
