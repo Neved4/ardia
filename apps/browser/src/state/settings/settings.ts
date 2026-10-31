@@ -82,7 +82,7 @@ export const SETTING_SPECS = {
   selectedTabGlow: oneOf(["full", "soft", "off"], "full", SYNCED),
   interfaceStyle: oneOf(["glass", "classic"], "glass", SYNCED),
   glassPanes: flag(true, SYNCED),
-  glassTintWithTheme: flag(true, SYNCED),
+  glassTintWithTheme: flag(false, SYNCED),
   pageScrollBars: oneOf(["system", "thin"], "system", SYNCED),
   fadeUnloadedTabs: flag(false, SYNCED),
   warnBeforeClosingTabGroup: flag(true, SYNCED),

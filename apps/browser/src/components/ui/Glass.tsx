@@ -16,7 +16,7 @@ export type GlassKind = keyof typeof GLASS_STYLE;
 export type GlassState = keyof typeof controlGlass.dark;
 export type GlassLook = { controls: boolean; panes: boolean; tinted: boolean };
 
-export const GlassLookContext = createContext<GlassLook>({ controls: liquidGlass, panes: liquidGlass, tinted: true });
+export const GlassLookContext = createContext<GlassLook>({ controls: liquidGlass, panes: liquidGlass, tinted: false });
 
 export const useGlassLook = () => useContext(GlassLookContext);
 
