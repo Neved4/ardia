@@ -18,6 +18,14 @@ final class MenuFaviconTests: XCTestCase {
     XCTAssertTrue(entry.image!.isTemplate)
   }
 
+  func testDuplicateFailuresDoNotSpendTheBudgetButDistinctFailuresDo() {
+    let invalid = "data:image/png;base64,broken"
+    let images = MenuFavicon.prepare(Array(repeating: invalid, count: 16) + [uri])
+    XCTAssertNotNil(images[uri])
+    let distinct = (0..<16).map { "data:image/png;name=\($0);base64,broken" }
+    XCTAssertNil(MenuFavicon.prepare(distinct + [uri])[uri])
+  }
+
   func testPreparedImagesShareTheLimitAndKeepFallbackImages() {
     let sources = (0..<20).map { "data:image/png;name=\($0);base64,\(png)" }
     let images = MenuFavicon.prepare(sources)

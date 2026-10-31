@@ -7,9 +7,11 @@ enum MenuFavicon {
   static func prepare(_ sources: [String]) -> [String: CGImage] {
     var images: [String: CGImage] = [:]
     var budget = 16
-    for source in sources where images[source] == nil {
+    var attempted = Set<String>()
+    for source in sources {
       guard source.utf8.count <= maxBytes * 2,
-            let url = URL(string: source), url.isFileURL || url.scheme == "data" else { continue }
+            let url = URL(string: source), url.isFileURL || url.scheme == "data",
+            attempted.insert(source).inserted else { continue }
       guard budget > 0 else { break }
       budget -= 1
       if let image = thumbnail(url) { images[source] = image }
