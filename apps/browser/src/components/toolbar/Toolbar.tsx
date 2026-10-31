@@ -222,7 +222,7 @@ export const SidebarUrlField = memo(function SidebarUrlField({ tab, palette, win
   const { insecure, hovered, popover, toggleSiteControls } = field;
 
   return (
-    <View {...field.hoverProps} style={{ flexDirection: "row", alignItems: "center", height, borderRadius: SIDEBAR_FIELD.radius, overflow: "hidden" }}>
+    <View {...field.hoverProps} style={{ flexDirection: "row", alignItems: "center", height, borderRadius: SIDEBAR_FIELD.radius }}>
       <SidebarFieldFill hovered={hovered} />
       <FieldSiteButton
         icon={insecure ? "lock.open.trianglebadge.exclamationmark.fill" : "slider.horizontal.3"}
@@ -245,7 +245,11 @@ export const SidebarUrlField = memo(function SidebarUrlField({ tab, palette, win
       <FieldButtons tab={tab} palette={palette} row={row} onFocus={onFocus} popover={popover} toggleSiteControls={toggleSiteControls} accessory={accessory}>
         {hovered && <BookmarkButton tab={tab} palette={palette} row={row} windowId={windowId} />}
       </FieldButtons>
-      {progress !== null ? <ProgressBar progress={progress} color={theme.accent} /> : null}
+      {progress !== null ? (
+        <View pointerEvents="none" style={[StyleSheet.absoluteFill, { borderRadius: SIDEBAR_FIELD.radius, overflow: "hidden" }]}>
+          <ProgressBar progress={progress} color={theme.accent} />
+        </View>
+      ) : null}
     </View>
   );
 });

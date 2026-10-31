@@ -7,7 +7,6 @@ import { SIDEBAR_FIELD } from "./geometry";
 import { useSidebarTokens } from "./tokens";
 
 const FIELD_BORDER = StyleSheet.hairlineWidth;
-const GLASS_FIELD_BORDER = StyleSheet.hairlineWidth * 2;
 export const FIELD_BUTTON = {
   box: 24,
   inset: (SIDEBAR_FIELD.height - 24) / 2,
@@ -22,11 +21,7 @@ export const SidebarFieldFill = memo(function SidebarFieldFill({
   const theme = useTheme();
   if (useGlass()) {
     return (
-      <GlassFill
-        state={hovered ? "lit" : "rest"}
-        radius={SIDEBAR_FIELD.radius}
-        border={GLASS_FIELD_BORDER}
-      />
+      <GlassFill state={hovered ? "lit" : "rest"} radius={SIDEBAR_FIELD.radius} />
     );
   }
   return (
