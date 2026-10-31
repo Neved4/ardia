@@ -4,7 +4,7 @@ import { Animated, StyleSheet, View } from "react-native";
 import { switchOn } from "../../state/app/switches";
 import { layout, useTheme } from "../ui/theme";
 import { spring, curve } from "../ui/motion";
-import { GlassFill, Panel, reduceMotion, useGlass, WindowDragRegion } from "../ui";
+import { Panel, reduceMotion, WindowDragRegion } from "../ui";
 import { SHADOWS } from "./tokens";
 import { useWindowId } from "../../state/browser/hooks";
 import { useSidebarDockState } from "../../state/windows/hooks";
@@ -45,7 +45,6 @@ import { useTabDrag } from "../../state/drag/tabDrag";
 import { usePeek } from "./usePeek";
 
 const SPRING = spring(DOCK_SPRING);
-const SIDEBAR_GLASS = { inset: 3, radius: 14 } as const;
 
 function useSidebarDock(open: boolean, animate: boolean, arc: boolean): { dock: Animated.Value; away: boolean } {
   const windowId = useWindowId();
@@ -184,7 +183,6 @@ function SidebarDock({
 }) {
   const theme = useTheme();
   const windowId = useWindowId();
-  const glass = useGlass();
   const moving = useDockMotion((m) => !!m.moving[windowId]);
   const edgeOver = useRef(false);
   const peek = usePeek(!open && !moving && !fullscreen, arc, () => edgeOver.current || peekHeld(windowId), () => dismissHoverIn(windowId));
@@ -299,11 +297,6 @@ function SidebarDock({
             <Panel fill={theme.windowTint[0]} radius={PEEK_RADIUS} border={theme.panelBorder} shadow={SHADOWS.sidebarPeek} style={StyleSheet.absoluteFill} />
           </Animated.View>
         )}
-        {glass && !peeking ? (
-          <View pointerEvents="none" style={{ position: "absolute", left: SIDEBAR_GLASS.inset, top: SIDEBAR_GLASS.inset, bottom: SIDEBAR_GLASS.inset, right: 0 }}>
-            <GlassFill radius={SIDEBAR_GLASS.radius} />
-          </View>
-        ) : null}
         <Animated.View style={[{ flex: 1 }, peekStyle, peeking ? { borderRadius: PEEK_RADIUS, overflow: "hidden" } : null]}>
           {sidebar}
         </Animated.View>
