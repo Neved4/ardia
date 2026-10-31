@@ -152,3 +152,18 @@ test("version nine closed groups remain visible after the bar visibility migrati
   assert.equal(S().closedGroups[0].hiddenFromBar, false);
   assert.equal(closedGroupsOnBarForProfile(S(), "default").length, 1);
 });
+
+test("bar groups reuse unchanged inputs and invalidate on group or profile changes", () => {
+  const windowId = setup();
+  close(windowId);
+  const state = S();
+  const groups = closedGroupsOnBarForProfile(state, "default");
+  assert.equal(groups.length, 1);
+  assert.equal(closedGroupsOnBarForProfile({ ...state }, "default"), groups);
+  assert.equal(closedGroupsOnBarForProfile(state, "missing").length, 0);
+  assert.equal(closedGroupsOnBarForProfile(state, "default"), groups);
+  assert.equal(closedGroupsOnBarForProfile({ ...state, profiles: {} }, "default").length, 0);
+  assert.equal(closedGroupsOnBarForProfile(state, "default").length, 1);
+  unpinClosedGroup(groups[0].id, "default");
+  assert.equal(closedGroupsOnBarForProfile(S(), "default").length, 0);
+});

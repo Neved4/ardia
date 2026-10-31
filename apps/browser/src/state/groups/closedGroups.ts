@@ -14,8 +14,23 @@ export function closedGroupsForProfile(s: ClosedGroupsState, profileId: string) 
   return hasProfile(s, profileId) ? s.closedGroups.filter((entry) => belongsToProfile(entry, profileId)) : [];
 }
 
-export const closedGroupsOnBarForProfile = (s: ClosedGroupsState, profileId: string) =>
-  closedGroupsForProfile(s, profileId).filter((entry) => entry.hiddenFromBar !== true);
+const barGroupsCache = new WeakMap<ClosedGroup[], {
+  profiles: ClosedGroupsState["profiles"]; byProfile: Map<string, ClosedGroup[]>;
+}>();
+
+export function closedGroupsOnBarForProfile(s: ClosedGroupsState, profileId: string) {
+  let cached = barGroupsCache.get(s.closedGroups);
+  if (!cached || cached.profiles !== s.profiles) {
+    cached = { profiles: s.profiles, byProfile: new Map() };
+    barGroupsCache.set(s.closedGroups, cached);
+  }
+  let groups = cached.byProfile.get(profileId);
+  if (!groups) {
+    groups = closedGroupsForProfile(s, profileId).filter((entry) => entry.hiddenFromBar !== true);
+    cached.byProfile.set(profileId, groups);
+  }
+  return groups;
+}
 
 export function reopenClosedGroup(entryId: string, windowId: string) {
   const s = useBrowser.getState();
