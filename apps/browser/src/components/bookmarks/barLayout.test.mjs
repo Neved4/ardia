@@ -27,3 +27,11 @@ test("bookmark items fill the lane and stay measurable before their first layout
   });
   assert.equal(barLayout(["a"], frames, 300, 28).width, 300);
 });
+
+test("unmeasured bookmarks can leave a gap before the last visible item", () => {
+  const { visible } = barLayout(["a", "b", "c"], { a: frames.a, b: frames.b }, 120, 28, {
+    unmeasuredVisible: true,
+  });
+  assert.deepEqual(visible, ["a", "c"]);
+  assert.equal(["a", "b", "c"].findIndex((id) => !visible.includes(id)), 1);
+});

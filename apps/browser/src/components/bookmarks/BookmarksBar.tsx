@@ -84,7 +84,8 @@ function Bar({ windowId }: { windowId: string }) {
   const { visible } = barLayout(children, frames, available, bookmarksBar.overflowWidth, { unmeasuredVisible: true });
   const visibleIds = new Set(visible);
   const fits = (id: string) => visibleIds.has(id);
-  const hiddenFrom = visible.length;
+  const firstHidden = children.findIndex((id) => !visibleIds.has(id));
+  const hiddenFrom = firstHidden < 0 ? children.length : firstHidden;
 
   const draggedHere = source?.kind === "bookmark" && visible.includes(source.id) ? source.id : null;
   const slotHere = spot && "slot" in spot && spot.zone === zone ? spot.slot : null;
