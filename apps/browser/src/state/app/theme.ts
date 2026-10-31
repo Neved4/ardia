@@ -17,9 +17,8 @@ export function useScopedLook<T>(resolve: (incognito: boolean, profile: Profile 
 
 export function useGlassSettings() {
   const glass = useBrowser((s) => s.settings.interfaceStyle === "glass");
-  const panes = useBrowser((s) => s.settings.glassPanes);
   const tint = useBrowser((s) => (s.settings.glassTintWithTheme ? s.settings.glassTintAmount : 0));
-  return { glass, panes, tint };
+  return { glass, tint };
 }
 
 export function useSelectedTabGlowSetting() {

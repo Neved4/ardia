@@ -74,7 +74,7 @@ export function LookStep() {
       <Page
         id={id}
         title="Glass or classic?"
-        subtitle="Settings › Appearance has more, like glass panels."
+        subtitle="Change it any time in Settings › Appearance."
         patch={{ interfaceStyle: values.interfaceStyle, glassTintWithTheme: values.glassTintWithTheme, glassTintAmount: values.glassTintAmount }}
         picked={values.interfaceStyle === "classic" ? ["Classic style"] : values.glassTintWithTheme ? [`Glass tinted ${Math.round(values.glassTintAmount * 100)} %`] : []}
         preview={preview}

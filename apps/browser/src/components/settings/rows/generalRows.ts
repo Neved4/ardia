@@ -252,7 +252,7 @@ export const generalRows = {
       rows: {
         interfaceStyle: {
           title: "Interface style",
-          description: "Glass draws the pinned tiles, fields and buttons in macOS Liquid Glass. Classic keeps them flat, like Dia.",
+          description: "Glass draws the pinned tiles, fields, buttons, Downloads and the site controls panel in macOS Liquid Glass. Classic keeps them flat, like Dia.",
           keywords: ["liquid glass", "glass", "classic", "flat", "translucent", "transparency", "glow", "frosted"],
           shown: (_, env) => !!env.glass,
         },
@@ -267,12 +267,6 @@ export const generalRows = {
           description: "How much of the profile colour the glass takes, from a hint to fully coloured.",
           keywords: ["liquid glass", "tint", "strength", "intensity", "colour", "color", "glossy"],
           shown: (s, env) => !!env.glass && s.interfaceStyle === "glass" && s.glassTintWithTheme,
-        },
-        glassPanes: {
-          title: "Use glass for panels",
-          description: "Downloads and the site controls panel take glass too. Off, they keep the frosted menu look.",
-          keywords: ["liquid glass", "panels", "panes", "downloads", "site controls", "popover"],
-          shown: (s, env) => !!env.glass && s.interfaceStyle === "glass",
         },
       },
     },

@@ -58,7 +58,6 @@ function InterfaceStylePicker() {
   const style = useSettings((s) => s.interfaceStyle);
   const tinted = useSettings((s) => s.glassTintWithTheme);
   const tintAmount = useSettings((s) => s.glassTintAmount);
-  const panes = useSettings((s) => s.glassPanes);
   if (!liquidGlass) return null;
   return (
     <>
@@ -79,9 +78,6 @@ function InterfaceStylePicker() {
             </View>
           </Row>
         ) : null}
-        <Row anchor="appearance.glassPanes">
-          <Toggle value={panes} onChange={(v) => updateSettings({ glassPanes: v })} />
-        </Row>
       </Group>
     </>
   );

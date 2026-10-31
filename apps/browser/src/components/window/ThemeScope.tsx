@@ -8,8 +8,8 @@ import { scopedTheme, ThemeContext, type Theme } from "../ui/theme";
 
 export function ThemeScope({ children }: { children: ReactNode }) {
   const theme = useScopedLook(scopedTheme);
-  const { glass, panes, tint } = useGlassSettings();
-  const look = useMemo(() => ({ controls: liquidGlass && glass, panes: liquidGlass && glass && panes, tint }), [glass, panes, tint]);
+  const { glass, tint } = useGlassSettings();
+  const look = useMemo(() => ({ controls: liquidGlass && glass, panes: liquidGlass && glass, tint }), [glass, tint]);
   return (
     <ThemeContext.Provider value={theme}>
       <GlassLookContext.Provider value={look}>{children}</GlassLookContext.Provider>
