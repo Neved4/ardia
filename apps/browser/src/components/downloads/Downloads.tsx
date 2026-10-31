@@ -132,7 +132,7 @@ function DownloadsPanel({ windowId, closing, onClosed }: { windowId: string; clo
                 <Text tone="textSecondary">No downloads yet</Text>
               </View>
             ) : (
-              <ScrollView style={{ maxHeight: listMax }} contentContainerStyle={{ paddingHorizontal: PANEL.rowInset }}>
+              <ScrollView style={{ maxHeight: listMax }} showsVerticalScrollIndicator={ids.length * L.row > listMax} contentContainerStyle={{ paddingHorizontal: PANEL.rowInset }}>
                 {ids.map((id) => (
                   <DownloadRowItem key={id} id={id} windowId={windowId} />
                 ))}
