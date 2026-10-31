@@ -7,6 +7,8 @@ import { parseColor, toHex } from "../../lib/color";
 export const liquidGlass = isLiquidGlass();
 
 const PROFILE_SHARE = 0.15;
+const CONTROL_PROFILE_SHARE = 0.8;
+const CONTROL_TINT_LIFT = 0.1;
 const PANEL_TINT_SHARE = 0.85;
 const GLASS_STYLE = { control: "clear", panel: "regular" } as const;
 
@@ -22,16 +24,18 @@ export function useGlass(surface: "controls" | "panes" = "controls"): boolean {
   return useGlassLook()[surface];
 }
 
-function profileTinted(theme: Theme, color: string, tinted: boolean): string {
+function profileTinted(theme: Theme, color: string, tinted: boolean, share = PROFILE_SHARE): string {
   const [r, g, b, a] = parseColor(color);
   if (!tinted) return toHex([r, g, b, a * 255]);
   const [pr, pg, pb] = parseColor(theme.backdrop.tintColor);
-  const mix = (c: number, p: number) => c + (p - c) * PROFILE_SHARE;
+  const mix = (c: number, p: number) => c + (p - c) * share;
   return toHex([mix(r, pr), mix(g, pg), mix(b, pb), a * 255]);
 }
 
 export function controlGlassTint(theme: Theme, state: GlassState, tinted: boolean, dark = theme.dark): string {
-  return profileTinted(theme, controlGlass[dark ? "dark" : "light"][state], tinted);
+  const [r, g, b, a] = parseColor(controlGlass[dark ? "dark" : "light"][state]);
+  const lifted = toHex([r, g, b, Math.min(1, a + (tinted ? CONTROL_TINT_LIFT : 0)) * 255]);
+  return profileTinted(theme, lifted, tinted, CONTROL_PROFILE_SHARE);
 }
 
 export function panelGlassTint(theme: Theme, fill: string, tinted: boolean): string {

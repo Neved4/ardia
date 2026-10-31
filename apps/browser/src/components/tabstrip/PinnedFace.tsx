@@ -35,6 +35,10 @@ export function PinnedFace({ tabId, active, hovered, pressed }: { tabId: string;
             style={StyleSheet.absoluteFill}
           />
         </View>
+      ) : glass && (hovered || pressed) ? (
+        <View style={face}>
+          <GlassFill radius={PINNED_FACE_RADIUS} state={pressed ? "pressed" : "lit"} />
+        </View>
       ) : (active || hovered || pressed) && (
         <View
           style={{
