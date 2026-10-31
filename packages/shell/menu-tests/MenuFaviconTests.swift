@@ -4,52 +4,74 @@ import XCTest
 
 final class MenuFaviconTests: XCTestCase {
   let png = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+a9ioAAAAASUVORK5CYII="
+  var uri: String { "data:image/png;base64,\(png)" }
 
   func testUnsupportedSourcesDoNotSpendTheBudgetBeforeAValidImage() {
-    var budget = 1
+    let sources = Array(repeating: "", count: 20) + ["https://example.com/icon.png", "http://localhost/icon.png", uri]
+    let images = MenuFavicon.prepare(sources)
+    XCTAssertEqual(images.count, 1)
     let entry = NSMenuItem()
-    for source in Array(repeating: "", count: 20) + ["https://example.com/icon.png", "http://localhost/icon.png"] {
-      MenuFavicon.apply(to: entry, favicon: source, symbol: "globe", budget: &budget)
-      XCTAssertTrue(entry.image?.isTemplate == true)
-    }
-    XCTAssertEqual(budget, 1)
-    MenuFavicon.apply(to: entry, favicon: "data:image/png;base64,\(png)", symbol: "globe", budget: &budget)
+    MenuFavicon.apply(to: entry, favicon: uri, symbol: "globe", images: images)
     XCTAssertEqual(entry.image?.size, NSSize(width: 16, height: 16))
     XCTAssertFalse(entry.image!.isTemplate)
-    XCTAssertEqual(budget, 0)
+    MenuFavicon.apply(to: entry, favicon: "", symbol: "globe", images: images)
+    XCTAssertTrue(entry.image!.isTemplate)
   }
 
-  func testNestedMenusShareTheLimitAndKeepFallbackImages() {
-    var budget = 16
+  func testPreparedImagesShareTheLimitAndKeepFallbackImages() {
+    let sources = (0..<20).map { "data:image/png;name=\($0);base64,\(png)" }
+    let images = MenuFavicon.prepare(sources)
+    XCTAssertEqual(images.count, 16)
     let menu = NSMenu()
-    for _ in 0..<2 {
-      let group = NSMenuItem()
-      group.submenu = NSMenu()
-      menu.addItem(group)
-      for _ in 0..<10 {
+    for group in 0..<2 {
+      let parent = NSMenuItem()
+      parent.submenu = NSMenu()
+      menu.addItem(parent)
+      for source in sources[(group * 10)..<(group * 10 + 10)] {
         let entry = NSMenuItem()
-        MenuFavicon.apply(to: entry, favicon: "data:image/png;base64,\(png)", symbol: "globe", budget: &budget)
-        group.submenu!.addItem(entry)
+        MenuFavicon.apply(to: entry, favicon: source, symbol: "globe", images: images)
+        parent.submenu!.addItem(entry)
       }
     }
-    let images = menu.items.flatMap { $0.submenu!.items }.compactMap(\.image)
-    XCTAssertEqual(images.count, 20)
-    XCTAssertTrue(images.prefix(16).allSatisfy { !$0.isTemplate && $0.size == NSSize(width: 16, height: 16) })
-    XCTAssertTrue(images.suffix(4).allSatisfy(\.isTemplate))
-    XCTAssertEqual(budget, 0)
+    let icons = menu.items.flatMap { $0.submenu!.items }.compactMap(\.image)
+    XCTAssertTrue(icons.prefix(16).allSatisfy { !$0.isTemplate && $0.size == NSSize(width: 16, height: 16) })
+    XCTAssertTrue(icons.suffix(4).allSatisfy(\.isTemplate))
   }
 
   func testFileImageAndInvalidLocalImageAssignment() throws {
     let file = FileManager.default.temporaryDirectory.appendingPathComponent("menu-favicon-\(UUID()).png")
     defer { try? FileManager.default.removeItem(at: file) }
     try Data(base64Encoded: png)!.write(to: file)
-    var budget = 2
+    let invalid = "data:image/png;base64,broken"
+    let images = MenuFavicon.prepare([file.absoluteString, invalid])
     let entry = NSMenuItem()
-    MenuFavicon.apply(to: entry, favicon: file.absoluteString, symbol: "globe", budget: &budget)
+    MenuFavicon.apply(to: entry, favicon: file.absoluteString, symbol: "globe", images: images)
     XCTAssertEqual(entry.image?.size, NSSize(width: 16, height: 16))
     XCTAssertFalse(entry.image!.isTemplate)
-    MenuFavicon.apply(to: entry, favicon: "data:image/png;base64,broken", symbol: "globe", budget: &budget)
+    MenuFavicon.apply(to: entry, favicon: invalid, symbol: "globe", images: images)
     XCTAssertTrue(entry.image!.isTemplate)
-    XCTAssertEqual(budget, 0)
+    try Data(repeating: 0, count: MenuFavicon.maxBytes + 1).write(to: file)
+    XCTAssertTrue(MenuFavicon.prepare([file.absoluteString]).isEmpty)
+  }
+
+  func testOversizedDataAndDimensionsFallBackAndThumbnailsAreBounded() throws {
+    let oversized = "data:image/png;base64," + Data(repeating: 0, count: MenuFavicon.maxBytes + 1).base64EncodedString()
+    XCTAssertTrue(MenuFavicon.prepare([oversized]).isEmpty)
+    for width in [256, 1025] {
+      let bitmap = try XCTUnwrap(NSBitmapImageRep(
+        bitmapDataPlanes: nil, pixelsWide: width, pixelsHigh: width,
+        bitsPerSample: 8, samplesPerPixel: 4, hasAlpha: true,
+        isPlanar: false, colorSpaceName: .deviceRGB, bytesPerRow: 0, bitsPerPixel: 0
+      ))
+      let data = try XCTUnwrap(bitmap.representation(using: .png, properties: [:]))
+      let source = "data:image/png;base64,\(data.base64EncodedString())"
+      let image = MenuFavicon.prepare([source])[source]
+      if width == 256 {
+        XCTAssertEqual(image?.width, 32)
+        XCTAssertEqual(image?.height, 32)
+      } else {
+        XCTAssertNil(image)
+      }
+    }
   }
 }

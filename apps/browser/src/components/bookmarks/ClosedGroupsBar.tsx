@@ -11,7 +11,7 @@ import { sameRect } from "./barMotion";
 import { BarButton } from "./BarItem";
 import { useBarSize } from "./barSize";
 import { bookmarksBar } from "./tokens";
-import { barLayout } from "./barLayout";
+import { barCandidates, barLayout } from "./barLayout";
 
 type Props = { windowId: string; maxWidth: number; onWidth: (width: number) => void };
 
@@ -22,9 +22,10 @@ export function ClosedGroupsBar({ windowId, maxWidth, onWidth }: Props) {
   const size = useBarSize();
   const theme = useTheme();
   const [frames, setFrames] = useState<Record<string, LayoutRectangle>>({});
+  const candidates = barCandidates(groups, maxWidth, size.padding * 2 + bookmarksBar.closedGroupGap);
   const { width, overflowing, visible } = barLayout(
-    groups.map((entry) => entry.id), frames, maxWidth,
-    bookmarksBar.overflowWidth, { gap: bookmarksBar.closedGroupGap, shrink: true },
+    candidates.map((entry) => entry.id), frames, maxWidth,
+    bookmarksBar.overflowWidth, { gap: bookmarksBar.closedGroupGap, shrink: true, overflowing: candidates.length < groups.length },
   );
   const visibleIds = new Set(visible);
   const fits = (id: string) => visibleIds.has(id);
@@ -35,8 +36,8 @@ export function ClosedGroupsBar({ windowId, maxWidth, onWidth }: Props) {
   if (!shown || !groups.length) return null;
   return (
     <View style={{ width, height: size.item, overflow: "hidden", flexShrink: 0 }}>
-      <View style={{ width: groups.length * (size.itemMaxWidth + bookmarksBar.closedGroupGap), flexDirection: "row", alignItems: "center" }}>
-        {groups.map((entry) => {
+      <View style={{ width: candidates.length * (size.itemMaxWidth + bookmarksBar.closedGroupGap), flexDirection: "row", alignItems: "center" }}>
+        {candidates.map((entry) => {
           const color = entry.group.color;
           const tint = color && color !== "none" ? (GROUP_COLORS[color]?.hex ?? theme.icon) : theme.icon;
           return (

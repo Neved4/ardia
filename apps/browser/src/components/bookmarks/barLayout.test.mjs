@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { barLayout } from "./barLayout.ts";
+import { barCandidates, barLayout } from "./barLayout.ts";
 
 const frames = { a: { x: 0, width: 70 }, b: { x: 74, width: 80 }, c: { x: 158, width: 90 } };
 const layout = (width, ids = ["a", "b", "c"], measured = frames) =>
@@ -34,4 +34,29 @@ test("unmeasured bookmarks can leave a gap before the last visible item", () => 
   });
   assert.deepEqual(visible, ["a", "c"]);
   assert.equal(["a", "b", "c"].findIndex((id) => !visible.includes(id)), 1);
+});
+
+test("candidate mounting stays bounded while measuring the first overflowing chip in both sizes", () => {
+  const groups = Array.from({ length: 10000 }, (_, id) => String(id));
+  for (const padding of [7, 10]) {
+    for (const width of [0, 18, 100, 190, 500]) {
+      const gap = 4;
+      const minimum = padding * 2 + gap;
+      const candidates = barCandidates(groups, width, minimum);
+      assert.equal(candidates.length, Math.floor(width / minimum) + 1);
+      const measured = Object.fromEntries(candidates.map((id, index) => [id, { x: index * minimum, width: padding * 2 }]));
+      const result = barLayout(candidates, measured, width, 28, { gap, shrink: true, overflowing: true });
+      assert.equal(result.overflowing, true);
+      assert.ok(result.visible.every((id) => measured[id].x + measured[id].width <= width - 28));
+      assert.equal(groups.filter((id) => !result.visible.includes(id)).length, groups.length - result.visible.length);
+    }
+  }
+  assert.deepEqual(barCandidates(["a", "b"], 500, 18), ["a", "b"]);
+  assert.deepEqual(barCandidates([], 500, 18), []);
+});
+
+test("an unmeasured candidate tail still reserves the overflow button for retained groups", () => {
+  assert.deepEqual(barLayout(["a", "b"], { a: frames.a }, 80, 28, { shrink: true, overflowing: true }), {
+    width: 80, overflowing: true, visible: [],
+  });
 });
