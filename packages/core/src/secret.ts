@@ -27,7 +27,6 @@ export class SecretEscapeError extends Error {
 }
 
 export class Secret<K extends SecretKind = SecretKind> {
-  private readonly secretKind?: K;
 
   private constructor() {}
 
