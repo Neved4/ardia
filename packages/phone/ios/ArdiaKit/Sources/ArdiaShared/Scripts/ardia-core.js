@@ -2765,8 +2765,11 @@ class SecretEscapeError extends Error {
 }
 
 class Secret                                    {
+                   secretKind    ;
 
-          constructor() {}
+          constructor() {
+    void this.secretKind;
+  }
 
   get kind()    {
     return kinds.get(this)     ;
