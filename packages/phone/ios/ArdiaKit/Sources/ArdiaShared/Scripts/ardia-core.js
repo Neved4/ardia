@@ -2765,7 +2765,6 @@ class SecretEscapeError extends Error {
 }
 
 class Secret                                    {
-                   secretKind    ;
 
           constructor() {}
 
