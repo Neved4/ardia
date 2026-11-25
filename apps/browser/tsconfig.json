@@ -8,6 +8,7 @@
     "noImplicitOverride": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
+    "forceConsistentCasingInFileNames": true,
     "paths": {
       "react-native": ["../../node_modules/react-native-macos"]
     }
