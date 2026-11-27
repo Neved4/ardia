@@ -103,26 +103,29 @@ export function TabContainersPage() {
                 title={container.name}
                 description={isRemoving ? "Clearing this container’s cookies and site data…" : canDelete ? undefined : "A tab or recently closed item still uses this container."}
               >
-                <Button
-                  title="Edit"
-                  accessibilityLabel={`Edit ${container.name}`}
-                  icon="pencil"
-                  focusRef={(view) => {
-                    if (view) editButtons.current.set(container.id, view);
-                    else editButtons.current.delete(container.id);
-                  }}
-                  disabled={removal !== null}
-                  onPress={() => showSettingsSheet(<ContainerEditorSheet container={container} returnFocusTo={editButtons.current.get(container.id) ?? null} />)}
-                />
-                <Button
-                  variant="icon"
-                  icon="trash"
-                  size="m"
-                  tooltip={isRemoving ? `Removing ${container.name}…` : `Remove ${container.name}…`}
-                  accessibilityHint="Clears this container’s cookies and site data from every profile."
-                  disabled={!canDelete || removal !== null}
-                  onPress={() => void remove(container.id, container.name)}
-                />
+                <View style={{ flexDirection: "row", alignItems: "center", gap: space.s }}>
+                  <Button
+                    variant="icon"
+                    icon="pencil"
+                    size="m"
+                    tooltip={`Edit ${container.name}`}
+                    focusRef={(view) => {
+                      if (view) editButtons.current.set(container.id, view);
+                      else editButtons.current.delete(container.id);
+                    }}
+                    disabled={removal !== null}
+                    onPress={() => showSettingsSheet(<ContainerEditorSheet container={container} returnFocusTo={editButtons.current.get(container.id) ?? null} />)}
+                  />
+                  <Button
+                    variant="icon"
+                    icon="trash"
+                    size="m"
+                    tooltip={isRemoving ? `Removing ${container.name}…` : `Remove ${container.name}…`}
+                    accessibilityHint="Clears this container’s cookies and site data from every profile."
+                    disabled={!canDelete || removal !== null}
+                    onPress={() => void remove(container.id, container.name)}
+                  />
+                </View>
               </Row>
             );
           })

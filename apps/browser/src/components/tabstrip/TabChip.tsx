@@ -25,7 +25,7 @@ import { dropAt, type GroupOut, type StripDrag } from "./model";
 import { PinnedFace } from "./PinnedFace";
 import { SelectedTab } from "./SelectedTab";
 import { CELL_STEP, dragRange, leaveIndex, type DragGeometry } from "./stripGroups";
-import { AUDIO_BADGE, CHIP_LABEL_GAP, CHIP_PAD, CLOSE_AFTER_SELECT_MS, CLOSE_MIN_CHIP, FAVICON, GAP, ITEM_HEIGHT, ITEM_TOP, PINNED_CELL, tabCloseRadius, tabRadius, TITLE_FADE_MAX, TITLE_FADE_MIN, TITLE_MIN_CHIP, TOP_STRIP_HEIGHT } from "./tokens";
+import { AUDIO_BADGE, CHIP_LABEL_GAP, CHIP_PAD, CLOSE_AFTER_SELECT_MS, CLOSE_MIN_CHIP, FAVICON, GAP, ITEM_HEIGHT, ITEM_TOP, PINNED_CELL, tabCloseRadius, tabRadius, TAB_TOP, TITLE_FADE_MAX, TITLE_FADE_MIN, TITLE_MIN_CHIP, TOP_STRIP_HEIGHT } from "./tokens";
 import { useStripDrag } from "./useStripDrag";
 import { useStripPick } from "./stripPick";
 import { StripScrollContext } from "./stripScroll";
@@ -190,7 +190,7 @@ export const TabChip = memo(function TabChip({ tabId, width, drawn, tuck, dragge
     <ThemeOverride theme={theme}>
       <Animated.View {...chipHover.hoverProps} style={{ width: drawn ?? width, height: TOP_STRIP_HEIGHT }}>
         {active && <SelectedTab width={drawn ?? width} band={band} opaque={dragged} />}
-        {container ? <View pointerEvents="none" style={{ position: "absolute", left: 8, right: 8, top: 0, height: 2, borderRadius: 1, backgroundColor: PROFILE_COLORS[container.color].swatch }} /> : null}
+        {container ? <View pointerEvents="none" style={{ position: "absolute", left: 8, right: 8, top: TAB_TOP + 1, height: 2, borderRadius: 1, backgroundColor: PROFILE_COLORS[container.color].swatch }} /> : null}
         {dragged && !active && (
           <View pointerEvents="none" style={[{ position: "absolute", left: 0, width, top: ITEM_TOP, height: ITEM_HEIGHT, backgroundColor: theme.windowTint[0] }, continuousCorners(tabRadius())]} />
         )}

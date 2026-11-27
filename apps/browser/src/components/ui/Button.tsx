@@ -39,6 +39,7 @@ type IconBase = {
   palette?: IconPalette;
   color?: string;
   style?: StyleProp<ViewStyle>;
+  focusRef?: Ref<View>;
   hit?: ButtonHit;
   onPressIn?: (event: GestureResponderEvent) => void;
   onPressOut?: (event: GestureResponderEvent) => void;
@@ -173,7 +174,7 @@ function IconButtonView(props: IconProps) {
   if (!props.toolbar)
     return (
       <View tooltip={tip} style={style} {...hoverProps}>
-        <Pressable onPress={props.onPress} onPressIn={handlePressIn} onPressOut={handlePressOut} disabled={disabled} accessibilityRole="button" accessibilityLabel={tooltip} accessibilityHint={props.accessibilityHint} style={hit ? { width: hit.width, height: hit.height } : undefined}>
+        <Pressable ref={props.focusRef} onPress={props.onPress} onPressIn={handlePressIn} onPressOut={handlePressOut} disabled={disabled} accessibilityRole="button" accessibilityLabel={tooltip} accessibilityHint={props.accessibilityHint} style={hit ? { width: hit.width, height: hit.height } : undefined}>
           {({ pressed }) => plate(pressed)}
         </Pressable>
       </View>
