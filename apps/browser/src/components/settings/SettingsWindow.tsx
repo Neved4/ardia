@@ -24,6 +24,7 @@ import { SettingsConsentSheet } from "../plugins/SettingsConsentSheet";
 import { claimSettingsOpenAt, forgetSettingsScroll, goToSettingsPane, SETTINGS_WINDOW_ID, settingsScrollFor, settingsBack, settingsForward, settingsPageKey, settingsPlaceKey, useSettingsNav, type SettingsPane, type SettingsPlace } from "../../state/settings/settingsWindows";
 import { closeProfileIconPickerIn } from "../../state/profiles/iconPicker";
 import { ProfileIconPicker } from "../profiles/ProfileIconPicker";
+import { closeContainerIconPicker, ContainerIconPicker } from "../containers/ContainerIconPicker";
 import { showCreateProfileSheets } from "../profiles/CreateProfile";
 import { settingsProfileFor } from "../../state/extensions/store";
 import { useSettingsColors } from "./useSettingsColors";
@@ -177,7 +178,10 @@ export function SettingsWindow() {
     if (to) scroller.current?.scrollTo({ y: to.y, animated: false });
   };
   useEffect(() => forgetSettingsScroll, []);
-  useEffect(() => closeProfileIconPickerIn(SETTINGS_WINDOW_ID), [key]);
+  useEffect(() => {
+    closeProfileIconPickerIn(SETTINGS_WINDOW_ID);
+    closeContainerIconPicker(SETTINGS_WINDOW_ID, false);
+  }, [key]);
   const content = useRef<View>(null);
   const viewport = useRef(0);
   const query = useSettingsSearch((s) => s.query);
@@ -258,6 +262,7 @@ export function SettingsWindow() {
       </View>
       <ProfileIconPicker windowId={SETTINGS_WINDOW_ID} />
       {sheet}
+      <ContainerIconPicker windowId={SETTINGS_WINDOW_ID} />
       <SettingsConsentSheet />
       <WindowControls windowId={SETTINGS_WINDOW_ID} centerY={TOOLBAR / 2} size={WINDOW_CONTROLS.regular} />
       <LeadingWindowControls windowId={SETTINGS_WINDOW_ID} size={WINDOW_CONTROLS.regular} />

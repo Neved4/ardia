@@ -33,6 +33,8 @@ const TOP = [
   ["import", ["general.importBrowser", "profiles.importPasswords"]],
   ["import from chrome", ["general.importBrowser"]],
   ["profile", ["profiles.defaultProfile", "profiles.profiles"]],
+  ["tab containers", ["profiles.tabContainers"]],
+  ["containers", ["profiles.tabContainers"]],
   ["sidebar", ["tabs.sidebarSide"]],
   ["right sidebar", ["tabs.sidebarSide"]],
   ["vertical tabs", ["tabs.layout"]],

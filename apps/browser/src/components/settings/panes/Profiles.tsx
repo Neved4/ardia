@@ -34,9 +34,11 @@ import { AddressesPage, CardsPage } from "./ProfileAutofill";
 import { ExtensionPage, ExtensionsSection } from "./ProfileExtensions";
 import { SitePage, SitesPage } from "./SiteSettings";
 import { homeRelative } from "../../../lib/homePath";
+import { TabContainersPage } from "./TabContainersPage";
 
 export function ProfilesPane({ profileId: chosen, detail }: SettingsPlace) {
   const profileId = useSelectedProfile(chosen);
+  if (detail === SETTINGS_DETAIL.tabContainers) return <TabContainersPage />;
   if (detail === SETTINGS_DETAIL.otherEngines) return <OtherEnginesPage profileId={profileId} />;
   if (detail === SETTINGS_DETAIL.passwords) return <PasswordsPage profileId={profileId} />;
   if (detail === SETTINGS_DETAIL.addresses) return <AddressesPage profileId={profileId} />;
@@ -226,6 +228,9 @@ function ThisProfileSection({ profileId }: { profileId: string }) {
         </Row>
         {PLATFORM_FEATURES.preloadPages ? <PreloadPagesRow profileId={profileId} /> : null}
         <Row anchor="profiles.siteSettings" onPress={() => goToSettingsPane("profiles", profileId, SETTINGS_DETAIL.sites)} />
+        <Row anchor="profiles.tabContainers">
+          <Button title="Manage…" onPress={() => goToSettingsPane("profiles", profileId, SETTINGS_DETAIL.tabContainers)} />
+        </Row>
       </Group>
 
       <ThemeSection profileId={profileId} anchor="profiles.themeColor" />

@@ -188,7 +188,7 @@ const ART_CLOSE_BOX = 22;
 const HUD_PLATE = { width: HUD_CLOSE_BOX, height: HUD_CLOSE_BOX, borderRadius: capsule(HUD_CLOSE_BOX), overflow: "hidden", alignItems: "center", justifyContent: "center" } as const;
 const HUD_GLYPH = { width: HUD_CLOSE_BOX, height: HUD_CLOSE_BOX } as const;
 
-export function PushButtonView({ title, onPress, kind = "default", disabled, icon, style }: PushProps) {
+export function PushButtonView({ title, accessibilityLabel, onPress, kind = "default", disabled, icon, style, focusRef }: PushProps) {
   const theme = useTheme();
   const { hovered, hoverProps } = useHover();
   const pressMotion = usePressScaleMotion(!disabled, buttonMotion.controlPressScale);
@@ -199,11 +199,12 @@ export function PushButtonView({ title, onPress, kind = "default", disabled, ico
   return (
     <View {...hoverProps} style={[{ opacity: disabled ? opacity.disabled : 1 }, style]}>
       <Pressable
+        ref={focusRef}
         disabled={disabled}
         onPress={onPress}
         onAccessibilityTap={disabled ? undefined : onPress}
         accessibilityRole="button"
-        accessibilityLabel={title}
+        accessibilityLabel={accessibilityLabel ?? title}
         accessibilityState={{ disabled: !!disabled }}
         onPressIn={pressMotion.onPressIn}
         onPressOut={pressMotion.onPressOut}

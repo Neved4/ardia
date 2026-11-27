@@ -160,15 +160,17 @@ export function ThemeSwatches({
   edits,
   size = swatch.size,
   gap = swatch.gap,
+  accessibilityLabel = "Theme color",
 }: {
   color: ProfileColor | null;
   onPreset: (color: ProfileColor) => void;
   edits?: PresetLookFields;
   size?: number;
   gap?: number;
+  accessibilityLabel?: string;
 }) {
   return (
-    <View style={{ flexDirection: "row", flexWrap: "wrap", gap }} accessibilityRole="radiogroup" accessibilityLabel="Theme color">
+    <View style={{ flexDirection: "row", flexWrap: "wrap", gap }} accessibilityRole="radiogroup" accessibilityLabel={accessibilityLabel}>
       {COLORS.map((c) => {
         const edited = edits ? presetThemeOf(edits, c) : null;
         const name = presetLabel(c, !!edited);

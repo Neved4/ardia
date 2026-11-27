@@ -5,7 +5,7 @@ import { prompt } from "../../platform/dialogs";
 import { createWebsiteContainer, deleteWebsiteContainer, openWebsiteContainerTab, updateWebsiteContainer } from "../../state/containers/actions";
 import { websiteContainersForMenu } from "../../state/containers/current";
 import { useBrowser } from "../../state/browser/store";
-import { PROFILE_SYMBOLS } from "../profiles/ProfileIcons";
+import { CONTAINER_SYMBOLS } from "./containerSymbols";
 import type { WebsiteContainer } from "../../state/browser/types";
 
 type ContainerAction =
@@ -49,7 +49,7 @@ function menuItems(): ChoiceItem<ContainerAction>[] {
           id: `icon:${container.id}`,
           title: "Icon",
           symbol: "photo",
-          children: PROFILE_SYMBOLS.map((icon) => ({
+          children: CONTAINER_SYMBOLS.map((icon) => ({
             value: { kind: "icon" as const, containerId: container.id, icon: icon.name },
             title: icon.title,
             symbol: icon.name,

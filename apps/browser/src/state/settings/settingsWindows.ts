@@ -110,6 +110,7 @@ export const SETTINGS_DETAIL = {
   addresses: "addresses",
   cards: "cards",
   otherEngines: "otherEngines",
+  tabContainers: "tabContainers",
   site: (origin: string) => `site:${origin}`,
   extension: (id: string) => `extension:${id}`,
 } as const;

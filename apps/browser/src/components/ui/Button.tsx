@@ -1,6 +1,6 @@
 import { ContextMenuArea } from "@ardia/shell";
 import { drawnSymbol, type SymbolProps } from "./Symbol";
-import { memo, useState, type ReactNode } from "react";
+import { memo, useState, type ReactNode, type Ref } from "react";
 import { Animated, Image, Pressable, Text, View, type GestureResponderEvent, type ImageSourcePropType, type StyleProp, type ViewStyle } from "react-native";
 import { modifiersOf, type ClickModifiers } from "../../lib/keys";
 import { useToolbarRowContext } from "./toolbarRowContext";
@@ -35,6 +35,7 @@ type IconBase = {
   radius?: number;
   weight?: SymbolProps["weight"];
   tooltip?: string;
+  accessibilityHint?: string;
   palette?: IconPalette;
   color?: string;
   style?: StyleProp<ViewStyle>;
@@ -80,11 +81,13 @@ export type CloseProps = { variant: "close"; onPress: () => void; tooltip?: stri
 export type PushProps = {
   variant?: "push";
   title: string;
+  accessibilityLabel?: string;
   onPress: () => void;
   kind?: "default" | "primary" | "destructive" | "plain";
   disabled?: boolean;
   icon?: string;
   style?: StyleProp<ViewStyle>;
+  focusRef?: Ref<View>;
 };
 
 export type ButtonProps = IconProps | TextProps | PillProps | StepperProps | CloseProps | PushProps;
@@ -170,7 +173,7 @@ function IconButtonView(props: IconProps) {
   if (!props.toolbar)
     return (
       <View tooltip={tip} style={style} {...hoverProps}>
-        <Pressable onPress={props.onPress} onPressIn={handlePressIn} onPressOut={handlePressOut} disabled={disabled} accessibilityRole="button" accessibilityLabel={tooltip} style={hit ? { width: hit.width, height: hit.height } : undefined}>
+        <Pressable onPress={props.onPress} onPressIn={handlePressIn} onPressOut={handlePressOut} disabled={disabled} accessibilityRole="button" accessibilityLabel={tooltip} accessibilityHint={props.accessibilityHint} style={hit ? { width: hit.width, height: hit.height } : undefined}>
           {({ pressed }) => plate(pressed)}
         </Pressable>
       </View>

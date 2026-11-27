@@ -13,7 +13,7 @@ import { createCleanUpSlice, type CleanUpSlice } from "../pins/tabCleanup";
 import { keptCleanedTabs, keptDeletedGroups } from "../pins/closedTabs";
 import { notePinChoices } from "../pins/pinChoices";
 import { createPeekSlice, type PeekSlice } from "../peek/peek";
-import { createContainersSlice, type ContainersSlice } from "../containers/containers";
+import { createContainersSlice, defaultWebsiteContainers, type ContainersSlice } from "../containers/containers";
 import { hydratedLayout } from "./hydratedLayout";
 import { createProfilesSlice, type ProfilesSlice } from "../profiles/profiles";
 import { engineProfiles } from "../profiles/engineProfiles";
@@ -148,7 +148,7 @@ const createdBrowser = create<BrowserState>()(actionsApart(transactions.middlewa
     let next: BrowserState = {
       ...s,
       profiles,
-      containers: data.containers ?? {},
+      containers: data.containers ?? defaultWebsiteContainers(),
       profileOrder,
       orphanedProfileData: (data.orphanedProfileData ?? []).filter((e) => !engines.has(e)),
       settings,

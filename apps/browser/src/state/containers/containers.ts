@@ -4,6 +4,15 @@ import { newId } from "../browser/model";
 import type { WebsiteContainer } from "../browser/types";
 import type { ProfileColor } from "../../lib/profileLook";
 
+export function defaultWebsiteContainers(): Record<string, WebsiteContainer> {
+  return {
+    "container-personal": { id: "container-personal", name: "Personal", color: "blue", icon: "touchid", createdAt: 0 },
+    "container-work": { id: "container-work", name: "Work", color: "orange", icon: "briefcase.fill", createdAt: 0 },
+    "container-banking": { id: "container-banking", name: "Banking", color: "green", icon: "dollarsign.circle.fill", createdAt: 0 },
+    "container-shopping": { id: "container-shopping", name: "Shopping", color: "pink", icon: "cart.fill", createdAt: 0 },
+  };
+}
+
 const COLORS: ProfileColor[] = ["blue", "green", "orange", "purple", "red", "yellow", "pink", "plum", "neutral"];
 
 export type ContainersSlice = {

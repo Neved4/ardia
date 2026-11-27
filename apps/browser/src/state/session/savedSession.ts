@@ -10,6 +10,7 @@ import { isOwnId, pageFromDisk, pinFromDisk, sessionRowsMisfiled, splitsChecked,
 import { profilesKeepingLegacyDots } from "../profiles/switcherMark";
 import { profilesWithOwnLooks } from "../../lib/presetLook";
 import { layoutDrops } from "../browser/hydratedLayout";
+import { defaultWebsiteContainers } from "../containers/containers";
 
 export const SESSION_VERSION = 11;
 const onListedRows = (migrations: Migrations): Migrations =>
@@ -74,7 +75,7 @@ export function sessionFromSaved(saved: SavedObject): SavedSession {
   const settings = settingsWithAutoHideTabs(raw.settings, savedWindowRows);
   return {
     windowsAgainstAutoHideTabs: windowsAgainstAutoHideTabs(settings, savedWindowRows),
-    containers: byProfile<WebsiteContainer>(raw.containers, containerOk),
+    containers: Object.hasOwn(raw, "containers") ? byProfile<WebsiteContainer>(raw.containers, containerOk) : defaultWebsiteContainers(),
     profiles: profilesWithOwnLooks(profilesKeepingLegacyDots(byProfile<Profile>(raw.profiles, profileOk), raw.settings)),
     profileOrder: strings(raw.profileOrder).filter(notInherited),
     orphanedProfileData: strings(raw.orphanedProfileData),

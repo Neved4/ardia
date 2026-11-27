@@ -30,14 +30,18 @@ export function IconGrid({
   current,
   onChoose,
   scrollKey,
+  compact = false,
 }: {
   sections: GridSection[];
   current: string | null;
   onChoose: (icon: string) => void;
   scrollKey: string;
+  compact?: boolean;
 }) {
   const list = useRef<FlatList<GridRow>>(null);
   const rows = useMemo(() => gridRows(sections), [sections]);
+  const visibleRows = rows.filter((row): row is Extract<GridRow, { icons: GridIcon[] }> => "icons" in row).length;
+  const gridHeight = compact ? Math.max(1, visibleRows) * ICON_PICKER.cell : GRID_HEIGHT;
   const offsets = useMemo(() => {
     let y = 0;
     return rows.map((row) => {
@@ -76,7 +80,7 @@ export function IconGrid({
         initialNumToRender={ICON_PICKER.rows + 2}
         maxToRenderPerBatch={ICON_PICKER.rows * 2}
         windowSize={5}
-        style={jumps.length ? GRID : GRID_WITHOUT_JUMPS}
+        style={[jumps.length ? GRID : GRID_WITHOUT_JUMPS, compact ? { height: gridHeight } : null]}
         showsVerticalScrollIndicator={false}
         scrollEventThrottle={16}
         onScroll={(e) => onScroll(e.nativeEvent.contentOffset.y)}
@@ -121,32 +125,38 @@ export function IconGrid({
 const Cell = memo(function Cell({ icon, label, selected, onPress }: { icon: string; label: string; selected: boolean; onPress: (icon: string) => void }) {
   const theme = useTheme();
   const [hovered, setHovered] = useState(false);
+  const [focused, setFocused] = useState(false);
   const symbol = iconSymbol(icon);
   const pressMotion = usePressScaleMotion(true, buttonMotion.iconPressScale);
   const scaleStyle = pressMotion.scale ? { transform: [{ scale: pressMotion.scale }] } : null;
   return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityLabel={label}
-      accessibilityState={{ selected }}
-      onPress={() => onPress(icon)}
-      onPressIn={pressMotion.onPressIn}
-      onPressOut={pressMotion.onPressOut}
-    >
-      <View
-        onMouseEnter={() => setHovered(true)}
-        onMouseLeave={() => setHovered(false)}
-        style={[CELL(), hovered || selected ? { backgroundColor: iconPickerColors(theme.dark).cellHover } : null]}
+    <View tooltip={label}>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={label}
+        accessibilityHint="Select this icon for the container."
+        accessibilityState={{ selected }}
+        onFocus={() => setFocused(true)}
+        onBlur={() => setFocused(false)}
+        onPress={() => onPress(icon)}
+        onPressIn={pressMotion.onPressIn}
+        onPressOut={pressMotion.onPressOut}
       >
-        {symbol ? (
-          <Animated.View style={[SYMBOL, scaleStyle]}>
-            <Symbol name={symbol} size={ICON_PICKER.symbol} color={theme.icon} style={SYMBOL} />
-          </Animated.View>
-        ) : (
-          <Animated.Text style={[EMOJI, scaleStyle]}>{icon}</Animated.Text>
-        )}
-      </View>
-    </Pressable>
+        <View
+          onMouseEnter={() => setHovered(true)}
+          onMouseLeave={() => setHovered(false)}
+          style={[CELL(), hovered || selected ? { backgroundColor: iconPickerColors(theme.dark).cellHover } : null, focused ? { borderWidth: 2, borderColor: theme.formAccent } : null]}
+        >
+          {symbol ? (
+            <Animated.View style={[SYMBOL, scaleStyle]}>
+              <Symbol name={symbol} size={ICON_PICKER.symbol} color={theme.icon} style={SYMBOL} />
+            </Animated.View>
+          ) : (
+            <Animated.Text style={[EMOJI, scaleStyle]}>{icon}</Animated.Text>
+          )}
+        </View>
+      </Pressable>
+    </View>
   );
 });
 

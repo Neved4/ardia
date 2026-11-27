@@ -13,6 +13,7 @@ const { migrateHistoryFile, reloadHistory, startHistory } = await import("../his
 const { historyOf } = await import("../history/history.ts");
 const { reloadBookmarks, startBookmarks } = await import("../bookmarks/engineSync.ts");
 const { flushPersistence, loadSession, startPersistence } = await import("./persist.ts");
+const { sessionFromSaved } = await import("./savedSession.ts");
 const { firstWindowCommitted } = await import("../../lib/afterFirstWindow.ts");
 const stub = await import("../../test-native/index.ts");
 
@@ -125,6 +126,17 @@ test("container tabs keep their WebKit store assignment through session restore"
   S().hydrate(loadSession());
   assert.equal(S().tabs[tabId].containerId, containerId);
   assert.equal(S().containers[containerId].color, "green");
+});
+
+test("sessions without container data receive the four default containers, while an empty saved list stays empty", () => {
+  const defaults = Object.values(sessionFromSaved({}).containers).map(({ name, color, icon }) => ({ name, color, icon }));
+  assert.deepEqual(defaults, [
+    { name: "Personal", color: "blue", icon: "touchid" },
+    { name: "Work", color: "orange", icon: "briefcase.fill" },
+    { name: "Banking", color: "green", icon: "dollarsign.circle.fill" },
+    { name: "Shopping", color: "pink", icon: "cart.fill" },
+  ]);
+  assert.deepEqual(sessionFromSaved({ containers: {} }).containers, {});
 });
 
 const flushEvents = () => new Promise((r) => setTimeout(r, 0));

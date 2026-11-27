@@ -22,6 +22,12 @@ export const profileRows = {
     {
       section: "This profile",
       rows: {
+        tabContainers: {
+          title: "Tab containers",
+          explained: true,
+          description: "Container names are shared across profiles. Site data stays isolated per profile.",
+          keywords: ["container", "containers", "isolated tabs", "separate cookies", "website data", "tab containers"],
+        },
         themeColor: {
           title: "Colour",
           description: "Pick a theme colour and edit it: colours, intensity, blur, noise and direction.",

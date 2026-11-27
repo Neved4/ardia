@@ -220,6 +220,7 @@ export const Easing = {
 export const AppState = { currentState: "active", addEventListener: () => ({ remove() {} }) };
 
 export const AccessibilityInfo = {
+  announceForAccessibility: () => {},
   isHighContrastEnabled: async () => false,
   isReduceMotionEnabled: async () => false,
   addEventListener: () => ({ remove() {} }),

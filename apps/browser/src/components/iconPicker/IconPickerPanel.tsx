@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { Animated, Pressable, StyleSheet, View, type LayoutChangeEvent } from "react-native";
-import { Button, Panel, radius, SearchField, space, usePopoverMotion, usePopoverMotionStyle } from "../ui";
+import { Button, Panel, radius, SearchField, space, Text, usePopoverMotion, usePopoverMotionStyle } from "../ui";
 import { useTheme } from "../ui/theme";
 import { iconSymbol, symbolIcon } from "../../lib/customIcon";
 import { emojiSections, matchesTerms, searchEmoji, searchTerms } from "../../lib/emoji";
@@ -56,11 +56,12 @@ type PanelProps = {
   onClose: () => void;
   place: PickerPlace | null;
   onSize: (height: number) => void;
+  symbolsOnly?: boolean;
 };
 
-function IconPickerPanel({ current, symbols, actions, onChoose, onClose, place, onSize }: PanelProps) {
+function IconPickerPanel({ current, symbols, actions, onChoose, onClose, place, onSize, symbolsOnly = false }: PanelProps) {
   const theme = useTheme();
-  const [tab, setTab] = useState<Tab>(iconSymbol(current) ? "symbols" : "emoji");
+  const [tab, setTab] = useState<Tab>(symbolsOnly || iconSymbol(current) ? "symbols" : "emoji");
   const [query, setQuery] = useState("");
   const terms = useMemo(() => searchTerms(query), [query]);
   const sections = useMemo(() => pickerSections(tab, terms, symbols), [tab, terms, symbols]);
@@ -91,11 +92,16 @@ function IconPickerPanel({ current, symbols, actions, onChoose, onClose, place, 
               }}
             />
           </View>
-          {TABS.map((t) => (
+          {!symbolsOnly ? TABS.map((t) => (
             <Button key={t.tab} variant="icon" icon={t.icon} active={tab === t.tab} tooltip={t.title} onPress={() => setTab(t.tab)} />
-          ))}
+          )) : null}
         </View>
-        <IconGrid sections={sections} current={current} onChoose={onChoose} scrollKey={`${tab}|${terms.join(" ")}`} />
+        <IconGrid sections={sections} current={current} onChoose={onChoose} scrollKey={`${tab}|${terms.join(" ")}`} compact={symbolsOnly} />
+        {symbolsOnly ? (
+          <Text size="small" tone="textSecondary" style={{ textAlign: "center" }}>
+            {symbols.find((symbol) => symbol.name === iconSymbol(current))?.title ?? "Choose an icon"}
+          </Text>
+        ) : null}
         {actions.length ? (
           <View style={TOP_ROW}>
             {actions.map((a) => (
@@ -116,8 +122,9 @@ type Anchor = { x: number; y: number; width: number; height: number };
 export function IconPickerLayer({
   placeIn,
   onClose,
+  symbolsOnly = false,
   ...panel
-}: Omit<PanelProps, "place" | "onSize"> & { placeIn: (height: number, room: Room) => PickerPlace }) {
+}: Omit<PanelProps, "place" | "onSize"> & { placeIn: (height: number, room: Room) => PickerPlace; symbolsOnly?: boolean }) {
   const [room, setRoom] = useState<Room | null>(null);
   const [height, setHeight] = useState<number | null>(null);
   return (
@@ -127,7 +134,7 @@ export function IconPickerLayer({
         style={StyleSheet.absoluteFill}
         onLayout={(e) => setRoom({ width: e.nativeEvent.layout.width, height: e.nativeEvent.layout.height })}
       />
-      <IconPickerPanel {...panel} onClose={onClose} place={room && height !== null ? placeIn(height, room) : null} onSize={setHeight} />
+      <IconPickerPanel {...panel} symbolsOnly={symbolsOnly} onClose={onClose} place={room && height !== null ? placeIn(height, room) : null} onSize={setHeight} />
     </>
   );
 }
