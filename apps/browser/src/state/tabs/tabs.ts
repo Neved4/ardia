@@ -359,7 +359,14 @@ export function withNewTab(s: BrowserState, windowId: string, o: NewTabOptions =
   const profileId = w.kind === "private" ? w.profileId : o.profileId && s.profiles[o.profileId] ? o.profileId : w.profileId;
   if (o.openerId && !o.background) s = forgetOpeners(s, windowId, profileId);
   const url = o.url ? resolveTyped(s.settings, o.url) : "";
-  const tab = makeTab(windowId, profileId, url, { ...o.snapshot, pin: o.pinned === false ? null : (o.snapshot?.pin ?? (o.pinned ? TILE_PIN : null)) });
+  const opener = o.openerId ? s.tabs[o.openerId] : undefined;
+  const containerId = o.snapshot?.containerId ?? (opener?.profileId === profileId ? opener.containerId : undefined);
+  const tab = makeTab(windowId, profileId, url, {
+    ...o.snapshot,
+    containerId,
+    ...(containerId ? { engine: "webkit" } : {}),
+    pin: o.pinned === false ? null : (o.snapshot?.pin ?? (o.pinned ? TILE_PIN : null)),
+  });
   if (tab.page.kind === "loaded" && !o.snapshot) tab.page = loadedPage(navigationTo(url, !o.replaced));
   tab.openerId = o.openerId ?? null;
   if (o.openerId) tab.linkOpenerId = o.openerId;

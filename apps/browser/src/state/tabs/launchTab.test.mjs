@@ -35,6 +35,14 @@ test("another profile's tab names that profile's engine profile", () => {
   assert.deepEqual(launchTab(S(), "w1"), { id: "a", url: "https://a.com/", profile: "work" });
 });
 
+test("container tabs wait for their WebKit data store instead of the early-launch path", () => {
+  hydrate([win("w1", ["a"], "a")], [{ ...tab("a", "w1", "https://work.example/"), containerId: "work" }], {
+    focusedWindowId: "w1",
+    containers: { work: { id: "work", name: "Work", color: "green", icon: "briefcase.fill", createdAt: 0 } },
+  });
+  assert.equal(launchTab(S(), "w1"), null);
+});
+
 test("nothing for a page the engine doesn't load at launch", () => {
   for (const url of ["", "about:blank", "ardia://history", "chrome://settings", "file:///tmp/x.html", "javascript:alert(1)"]) {
     hydrate([win("w1", ["a"], "a")], [tab("a", "w1", url)], { focusedWindowId: "w1" });

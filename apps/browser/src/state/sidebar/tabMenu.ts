@@ -21,7 +21,7 @@ import { bookmarksShown } from "../bookmarks/visibility";
 import { calendarMenuItem, dismissNowMenuItems, runCalendarMenu } from "./liveMenus";
 import { newFolderWithTab, removeFromFolder } from "./tileFolderUi";
 import { togglePageEngine } from "../engines/actions";
-import { ENGINE_NAMES, otherEngine, switchableEngine, tabEngine } from "../engines/engines";
+import { ENGINE_NAMES, modeEngineFor, otherEngine, switchableEngine, tabEngine } from "../engines/engines";
 import { groupItems, hintWhen, profileItems, sections, windowItems, withAlternate, type Destination } from "./menuParts";
 import { openMultiMenu } from "./multiTabMenu";
 import { tileFolderOf } from "../pins/tileFolders";
@@ -33,6 +33,8 @@ import { canSleep, sleepTabsFromMenu } from "../tabs/manualSleep";
 import { isPluginMenuChoice, pluginMenuItems, runPluginMenuChoice, type PluginMenuContext } from "../plugins/menus";
 import { urlParts } from "../../lib/urlParts";
 import { ALL_UNREAD_TITLE, canChooseSiteUnread, isUnreadSiteHidden, showUnreadCounts, toggleSiteUnread, unreadSiteTitle } from "../tabs/unreadSites";
+import { websiteContainersForMenu } from "../containers/current";
+import { createWebsiteContainer, moveTabToWebsiteContainer } from "../containers/actions";
 import { PLATFORM_FEATURES } from "../../lib/platformFeatures";
 import { userClose } from "../tabs/closeActivation";
 import { openTileLetters, setTileLetters, showsTileLetters } from "../pins/tileLetters";
@@ -93,6 +95,28 @@ function quickItems(s: BrowserState, tab: Tab, f: Facts): MenuItem[] {
 function calendarItems(tab: Tab): MenuItem[] {
   if (!tab.pin || !isCalendarUrl(tab.pinnedUrl ?? tab.url)) return [];
   return [...(pinSection(tab) === "tile" ? dismissNowMenuItems() : []), calendarMenuItem()];
+}
+
+function containerItems(s: BrowserState, tab: Tab): TabMenuItem[] {
+  if (tab.url ? !switchableEngine(s, tab.url) : modeEngineFor(s, tab, "") === "chromium") return [];
+  const containers = websiteContainersForMenu().map(({ container }) => ({
+    value: { kind: "container" as const, containerId: container.id },
+    title: container.name,
+    symbol: container.icon,
+    checked: container.id === tab.containerId,
+    enabled: container.id !== tab.containerId,
+  }));
+  return [{
+    id: "moveToContainer",
+    title: tab.containerId ? "Move to Container" : "Add to Container",
+    symbol: "square.stack.3d.up",
+    children: [
+      ...(tab.containerId ? [{ value: { kind: "container" as const, containerId: null }, title: "Default Browsing", symbol: "globe" }] : []),
+      ...containers,
+      ...(containers.length ? [{ separator: true as const }] : []),
+      { value: { kind: "newContainer" as const }, title: "New Container…", symbol: "plus" },
+    ],
+  }];
 }
 
 type TabMenuItem = ChoiceItem<Destination>;
@@ -238,7 +262,7 @@ const pluginItems = (s: BrowserState, windowId: string, tab: Tab, f: Facts): Men
 export function tabMenuItems(s: BrowserState, windowId: string, tab: Tab, f: Facts = tabMenuFacts(s, windowId, tab)): TabMenuItem[] {
   return sections<TabMenuItem>(
     quickItems(s, tab, f),
-    [...pinItems(s, tab, f), moveToItem(s, windowId, tab, f), ...bookmarkItems(s, windowId, tab, f), ...sendItems(tab, f), ...calendarItems(tab)],
+    [...pinItems(s, tab, f), moveToItem(s, windowId, tab, f), ...containerItems(s, tab), ...bookmarkItems(s, windowId, tab, f), ...sendItems(tab, f), ...calendarItems(tab)],
     pluginItems(s, windowId, tab, f),
     [customizeItem(s, tab, f), ...sleepItems(s, tab, f)],
     closeItems(f),
@@ -269,7 +293,13 @@ function sendTab(windowId: string, tabId: string, to: Destination) {
   if (to.kind === "group") store().placeTabs([tabId], { pinned: false, groupId: to.groupId });
   else if (to.kind === "profile") void moveTabsToProfile([tabId], to.profileId);
   else if (to.kind === "window") moveTabToWindow(tabId, to.windowId);
-  else void bookmarkTabs(windowId, [tabId], to);
+  else if (to.kind === "container") void moveTabToWebsiteContainer(tabId, to.containerId);
+  else if (to.kind === "newContainer") {
+    const id = createWebsiteContainer();
+    void moveTabToWebsiteContainer(tabId, id).then((moved) => {
+      if (!moved) store().deleteContainer(id);
+    });
+  } else void bookmarkTabs(windowId, [tabId], to);
 }
 
 function runTabChoice(windowId: string, tab: Tab, f: Facts, choice: string | Destination, consent: ConsentToken | null) {

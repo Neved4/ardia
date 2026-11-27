@@ -2,6 +2,7 @@ import { confirm } from "../../platform/dialogs";
 import { showMenu, type MenuItem } from "../../platform/menus";
 import { webviews } from "../../platform/webviews";
 import { clearSiteDataEverywhere } from "../engines/siteData";
+import { clearSiteData } from "../../platform/siteSettings";
 import { getContentBlocker, isContentBlockerAllowed, setContentBlockerAllowed } from "../../platform/contentBlocker";
 import { menuSections } from "../app/menuSections";
 import { menuShortcut } from "../commands/commandShortcuts";
@@ -33,7 +34,7 @@ export async function setSiteBlocking(tab: Pick<Tab, "id" | "windowId">, host: s
   return allowed;
 }
 
-export async function clearSiteDataAfterConfirm(tab: Pick<Tab, "id" | "windowId" | "profileId">, origin: string): Promise<number | null> {
+export async function clearSiteDataAfterConfirm(tab: Pick<Tab, "id" | "windowId" | "profileId" | "containerId">, origin: string): Promise<number | false | null> {
   const host = new URL(origin).hostname;
   const { confirmed } = await confirm({
     title: `Clear cookies and site data for ${host}?`,
@@ -44,10 +45,12 @@ export async function clearSiteDataAfterConfirm(tab: Pick<Tab, "id" | "windowId"
   });
   if (!confirmed) return null;
   const profile = engineProfile(useBrowser.getState(), tab.profileId);
-  const result = await clearSiteDataEverywhere(profile, origin).catch(() => null);
+  const result = tab.containerId
+    ? await clearSiteData(profile, origin, "webkit", tab.containerId).catch(() => null)
+    : await clearSiteDataEverywhere(profile, origin).catch(() => null);
   const now = currentTab(tab.id);
   if (now && now.profileId === tab.profileId && siteOrigin(now.url) === origin) void webviews.get(tab.id)?.reload();
-  return result && typeof result.cookies === "number" ? result.cookies : 0;
+  return !result || result.cookies === false ? false : typeof result.cookies === "number" ? result.cookies : 0;
 }
 
 type ReloadMenuState = { blocker: "on" | "off" | "offInSettings" | "unavailable" };

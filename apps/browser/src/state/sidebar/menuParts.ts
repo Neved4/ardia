@@ -16,6 +16,8 @@ export type Destination =
   | { kind: "window"; windowId: string | null }
   | { kind: "group"; groupId: string }
   | { kind: "folder"; parentId: string | undefined }
+  | { kind: "container"; containerId: string | null }
+  | { kind: "newContainer" }
   | { kind: "newFolder" };
 
 export type BookmarkFolderChoice = Extract<Destination, { kind: "folder" | "newFolder" }>;

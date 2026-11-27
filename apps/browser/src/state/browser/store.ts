@@ -13,6 +13,7 @@ import { createCleanUpSlice, type CleanUpSlice } from "../pins/tabCleanup";
 import { keptCleanedTabs, keptDeletedGroups } from "../pins/closedTabs";
 import { notePinChoices } from "../pins/pinChoices";
 import { createPeekSlice, type PeekSlice } from "../peek/peek";
+import { createContainersSlice, type ContainersSlice } from "../containers/containers";
 import { hydratedLayout } from "./hydratedLayout";
 import { createProfilesSlice, type ProfilesSlice } from "../profiles/profiles";
 import { engineProfiles } from "../profiles/engineProfiles";
@@ -42,7 +43,8 @@ export type BrowserState = ProfilesSlice &
   SettingsSlice &
   UiSlice &
   DownloadsSlice &
-  PeekSlice & {
+  PeekSlice &
+  ContainersSlice & {
     hydrate(data: HydrateData): void;
   };
 
@@ -68,6 +70,7 @@ export type HydrateData = Partial<
     | "deletedGroups"
     | "cleanedTabs"
     | "downloads"
+    | "containers"
     | "settings"
     | "settingsMeta"
   >
@@ -120,6 +123,7 @@ const createdBrowser = create<BrowserState>()(actionsApart(transactions.middlewa
   ...createUiSlice(...a),
   ...createDownloadsSlice(...a),
   ...createPeekSlice(...a),
+  ...createContainersSlice(...a),
 
   hydrate(data) {
     const [set, get] = a;
@@ -144,6 +148,7 @@ const createdBrowser = create<BrowserState>()(actionsApart(transactions.middlewa
     let next: BrowserState = {
       ...s,
       profiles,
+      containers: data.containers ?? {},
       profileOrder,
       orphanedProfileData: (data.orphanedProfileData ?? []).filter((e) => !engines.has(e)),
       settings,

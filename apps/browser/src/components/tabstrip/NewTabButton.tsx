@@ -20,6 +20,7 @@ import { pressStripOpen } from "../../state/tabs/stripPress";
 import { workspaceSnapshot } from "../../state/browser/current";
 import { GAP, ITEM_HEIGHT, ITEM_TOP, NEW_TAB_ICON, OVERFLOW_BUTTON, tabRadius } from "./tokens";
 import { keyText } from "../../state/commands/keyText";
+import { openWebsiteContainerMenu } from "../containers/ContainerMenu";
 
 const NEW_TAB_HIT = perLook(() => ({ width: ITEM_HEIGHT, height: ITEM_HEIGHT, plateX: 0, plateY: 0, box: ITEM_HEIGHT, radius: tabRadius() }));
 const OVERFLOW_HIT = perLook(() => {
@@ -60,7 +61,7 @@ export function NewTabButton({ windowId, geometry, pinned, showTabMenuButton }: 
   return (
     <Animated.View {...hoverProps} pointerEvents="box-none" style={{ marginTop: ITEM_TOP, flexDirection: "row", transform: [{ translateX: shift }] }}>
       <View {...slid} ref={slidRef} pointerEvents="box-none" style={[NEW_TAB_ROW, slid.style as object]}>
-        <Button variant="icon" toolbar icon="plus" glyph={NEW_TAB_ICON} hit={NEW_TAB_HIT()} palette={palette} tooltip={splitViewAvailable ? `${withShortcut("New Tab", newTabHint)} — ${keyText("⌥")}-click to open in Split View` : withShortcut("New Tab", newTabHint)} onPress={open} onContextMenu={() => openTabStripMenu(windowId)} />
+        <Button variant="icon" toolbar icon="plus" glyph={NEW_TAB_ICON} hit={NEW_TAB_HIT()} palette={palette} tooltip={splitViewAvailable ? `${withShortcut("New Tab", newTabHint)} — ${keyText("⌥")}-click to open in Split View` : withShortcut("New Tab", newTabHint)} onPress={open} onContextMenu={() => void openWebsiteContainerMenu(windowId)} />
         {showTabMenuButton && <Button variant="icon" toolbar icon="chevron.down" glyph={OVERFLOW_BUTTON.glyph} weight="semibold" hit={OVERFLOW_HIT()} palette={palette} color={hovered ? theme.textSecondary : theme.textTertiary} style={OVERFLOW_STYLE} tooltip="Open and recently closed tabs" onPress={openOverflow} onContextMenu={() => openTabStripMenu(windowId)} />}
       </View>
     </Animated.View>

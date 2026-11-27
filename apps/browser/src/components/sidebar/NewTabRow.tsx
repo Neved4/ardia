@@ -17,6 +17,7 @@ import { SidebarRowLabel } from "./SidebarRow";
 import { useQuietRows } from "./rowLook";
 import { buttonMotion, usePressScaleMotion } from "../ui/motion";
 import { Squish, useSquish } from "../ui/Squish";
+import { openWebsiteContainerMenu } from "../containers/ContainerMenu";
 
 const clippedRow = perLook(() => ({ marginTop: -layout.rowGap, paddingTop: layout.rowGap, overflow: "hidden" as const }));
 const BUTTONS_ROOM = TAB_ROW.trailing + TAB_ROW.closeSlot + TAB_ROW.trailing;
@@ -37,7 +38,7 @@ export const NewTabRow = memo(function NewTabRow({ windowId, shift = null, clip 
   const quietInk = hex(withAlpha(theme.textTab, hovered ? tokens.quietText : tokens.quietFaintText));
   return (
     <View {...hoverProps} style={[{ flexDirection: "row", alignItems: "center" }, clipped ? clippedRow() : null]}>
-      <ContextMenuArea style={{ flex: 1 }} onContextMenu={() => void openSidebarMenu(windowId)}>
+      <ContextMenuArea style={{ flex: 1 }} onContextMenu={() => void openWebsiteContainerMenu(windowId)}>
         <Pressable
           tooltip={`${withShortcut("New Tab", newTabHint)} — ⌥-click to open in Split View`}
           onPressIn={() => {

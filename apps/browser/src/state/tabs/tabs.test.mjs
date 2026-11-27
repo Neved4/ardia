@@ -38,8 +38,7 @@ test("links opened behind line up after their opener in order", () => {
   assert.equal(shown(w), "a", "opened behind: the opener stays in front");
 });
 
-test("closing the shown tab goes back to the tab used before it, not its neighbour", () => {
-  reset();
+test("closing the shown tab goes back to the tab used before it, not its neighbour", () => {  reset();
   const [w, a, , c] = setup("a", "b", "c");
   S().activate(c);
   S().activate(a);

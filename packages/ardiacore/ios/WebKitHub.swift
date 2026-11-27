@@ -74,9 +74,9 @@ final class WebKitHub: NSObject, WKScriptMessageHandler {
     })();
     """
 
-  func configuration(profile: String) -> WKWebViewConfiguration {
+  func configuration(profile: String, containerId: String? = nil) -> WKWebViewConfiguration {
     let config = WKWebViewConfiguration()
-    config.websiteDataStore = stores.dataStore(for: profile)
+    config.websiteDataStore = stores.dataStore(for: profile, containerId: containerId)
     let controller = WKUserContentController()
     controller.addUserScript(WKUserScript(source: WebKitPageScript.source, injectionTime: .atDocumentStart, forMainFrameOnly: false, in: Self.world))
     controller.add(self, contentWorld: Self.world, name: "ardia")
@@ -135,8 +135,8 @@ final class WebKitHub: NSObject, WKScriptMessageHandler {
     stores.setZoom(level, profile: profile, host: host)
   }
 
-  func resumeHost(for profile: String) -> WKWebView {
-    stores.resumeHost(for: profile) { configuration(profile: profile) }
+  func resumeHost(for profile: String, containerId: String? = nil) -> WKWebView {
+    stores.resumeHost(for: profile, containerId: containerId) { configuration(profile: profile, containerId: containerId) }
   }
 
   private func closeViews(using store: WKWebsiteDataStore, id: WebKitStores.StoreID) {
@@ -146,10 +146,11 @@ final class WebKitHub: NSObject, WKScriptMessageHandler {
   }
 
   func endPrivateSession(_ name: String) {
-    guard let ended = stores.endPrivateSession(name) else { return }
-    closeViews(using: ended.store, id: ended.id)
-    certificates.forget(ended.id)
-    ended.store.removeData(ofTypes: WKWebsiteDataStore.allWebsiteDataTypes(), modifiedSince: .distantPast) {}
+    for ended in stores.endPrivateSession(name) {
+      closeViews(using: ended.store, id: ended.id)
+      certificates.forget(ended.id)
+      ended.store.removeData(ofTypes: WKWebsiteDataStore.allWebsiteDataTypes(), modifiedSince: .distantPast) {}
+    }
   }
 
   static let siteDataTypes: Set<String> = WKWebsiteDataStore.allWebsiteDataTypes().subtracting([
@@ -186,9 +187,9 @@ final class WebKitHub: NSObject, WKScriptMessageHandler {
     return !name.isEmpty && (host == name || host.hasSuffix("." + name))
   }
 
-  func clearSiteData(profile: String, host rawHost: String, completion: @escaping ([String: Any]) -> Void) {
-    guard stores.hasStore(for: profile) else { return completion(["cookies": 0, "storage": true]) }
-    let store = stores.dataStore(for: profile)
+  func clearSiteData(profile: String, host rawHost: String, containerId: String? = nil, completion: @escaping ([String: Any]) -> Void) {
+    guard containerId != nil || stores.hasStore(for: profile) else { return completion(["cookies": 0, "storage": true]) }
+    let store = stores.dataStore(for: profile, containerId: containerId)
     let host = rawHost.lowercased()
     store.fetchDataRecords(ofTypes: WKWebsiteDataStore.allWebsiteDataTypes()) { records in
       let matching = records.filter { Self.covers($0.displayName, host: host) }
@@ -198,6 +199,42 @@ final class WebKitHub: NSObject, WKScriptMessageHandler {
           completion(["cookies": count, "storage": true])
         }
       }
+    }
+  }
+
+  func clearContainerData(profile: String, containerId: String, sinceMilliseconds: Double, completion: @escaping (Bool) -> Void) {
+    guard !containerId.isEmpty else { return completion(false) }
+    let since = sinceMilliseconds > 0 ? Date(timeIntervalSince1970: sinceMilliseconds / 1000) : Date.distantPast
+    stores.dataStore(for: profile, containerId: containerId)
+      .removeData(ofTypes: WKWebsiteDataStore.allWebsiteDataTypes(), modifiedSince: since) {
+        completion(true)
+      }
+  }
+
+  func deleteContainerData(profile: String, containerId: String, completion: @escaping (Bool) -> Void) {
+    guard !containerId.isEmpty else { return completion(false) }
+    let identifier = WebKitStores.containerStoreIdentifier(profile, containerId)
+    let storeId = stores.id(of: profile, containerId: containerId)
+    let removed = stores.forgetContainer(profile, containerId: containerId)
+    if WebKitStores.isPrivate(profile) {
+      guard let store = removed else { return completion(true) }
+      closeViews(using: store, id: storeId)
+      store.removeData(ofTypes: WKWebsiteDataStore.allWebsiteDataTypes(), modifiedSince: .distantPast) {
+        DispatchQueue.main.async { completion(true) }
+      }
+      return
+    }
+    let removeStore = {
+      WebKitStoreRemovals.exists(identifier) { exists in
+        guard exists else { return completion(true) }
+        WebKitStoreRemovals.remove(identifier, tries: 12, done: completion)
+      }
+    }
+    guard let store = removed else { return removeStore() }
+    closeViews(using: store, id: .container(profile: profile, id: containerId))
+    if let host = stores.takeResumeHost(of: profile, containerId: containerId) { Self.close(host) }
+    store.removeData(ofTypes: WKWebsiteDataStore.allWebsiteDataTypes(), modifiedSince: .distantPast) {
+      DispatchQueue.main.async(execute: removeStore)
     }
   }
 

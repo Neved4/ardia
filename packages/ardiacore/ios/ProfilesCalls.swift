@@ -1,11 +1,13 @@
 import ExpoModulesCore
 
-func profilesCallTable(loaded loadedHandler: @escaping CallHandler, release releaseHandler: @escaping CallHandler, unloadIdle unloadIdleHandler: @escaping CallHandler, deleteData deleteDataHandler: @escaping CallHandler, clearBrowsingData clearBrowsingDataHandler: @escaping CallHandler) -> CallTable {
+func profilesCallTable(loaded loadedHandler: @escaping CallHandler, release releaseHandler: @escaping CallHandler, unloadIdle unloadIdleHandler: @escaping CallHandler, deleteData deleteDataHandler: @escaping CallHandler, clearBrowsingData clearBrowsingDataHandler: @escaping CallHandler, clearContainerStorage clearContainerStorageHandler: @escaping CallHandler, deleteContainerStorage deleteContainerStorageHandler: @escaping CallHandler) -> CallTable {
   CallTable(domain: "profiles", handlers: [
     "loaded": loadedHandler,
     "release": releaseHandler,
     "unloadIdle": unloadIdleHandler,
     "deleteData": deleteDataHandler,
     "clearBrowsingData": clearBrowsingDataHandler,
+    "clearContainerStorage": clearContainerStorageHandler,
+    "deleteContainerStorage": deleteContainerStorageHandler,
   ])
 }

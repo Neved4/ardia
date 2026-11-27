@@ -37,7 +37,15 @@ public class SitesModule: Module {
       reply.ok()
     },
     clearData: { args, reply in
-      try engine(args).clearSiteData(profile: args.profile, origin: try args.text("origin")) { reply.service($0, $1) }
+      let origin = try args.text("origin")
+      if let containerId = try args.optionalText("containerId"), !containerId.isEmpty {
+        guard let host = URL(string: origin)?.host, !host.isEmpty else {
+          return reply.ok(["cookies": false, "storage": false])
+        }
+        WebKitHub.shared.clearSiteData(profile: args.profile, host: host, containerId: containerId) { reply.ok($0) }
+      } else {
+        try engine(args).clearSiteData(profile: args.profile, origin: origin) { reply.service($0, $1) }
+      }
     },
     zoomLevels: { args, reply in ArdiaServices.zoomLevels(profile: args.profile) { reply.service($0, $1) } },
     setZoom: { args, reply in

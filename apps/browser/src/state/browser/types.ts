@@ -26,6 +26,14 @@ export type Profile = {
   passwordManager?: string;
 };
 
+export type WebsiteContainer = {
+  id: string;
+  name: string;
+  color: ProfileColor;
+  icon: string;
+  createdAt: number;
+};
+
 type WindowBase = {
   id: string;
   profileId: string;
@@ -53,6 +61,7 @@ export type Tab = {
   id: string;
   windowId: string;
   profileId: string;
+  containerId?: string;
   url: string;
   title: string;
   favicon: string | null;
@@ -155,8 +164,7 @@ export type TabSnapshot = Pick<
   Tab,
   "url" | "title" | "favicon" | "pin" | "muted" | "zoom" | "customTitle" | "customIcon" | "profileId"
 > &
-  Partial<Pick<Tab, "pinnedUrl" | "reopenAtPinnedUrl" | "engine" | "lastActiveAt" | "tileLetters">>;
-
+  Partial<Pick<Tab, "pinnedUrl" | "reopenAtPinnedUrl" | "engine" | "lastActiveAt" | "tileLetters" | "containerId">>;
 export type ClosedTab = {
   kind: "tab";
   id: string;

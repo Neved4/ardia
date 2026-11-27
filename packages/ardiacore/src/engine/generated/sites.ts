@@ -7,7 +7,7 @@ export type SitesCalls = {
   "sites.setSetting": [Profile & { origin: string; type: SiteSettingType; value: SiteSettingValue; engine: PageEngine }, null];
   "sites.origins": [Profile, string[]];
   "sites.reset": [Profile & { origin: string }, null];
-  "sites.clearData": [Profile & { origin: string; engine: PageEngine }, ClearSiteDataResult];
+  "sites.clearData": [Profile & { origin: string; engine: PageEngine; containerId?: string }, ClearSiteDataResult];
   "sites.zoomLevels": [Profile, Record<string, number>];
   "sites.readStorage": [Profile & { origin: string }, { items: StorageItems | null }];
   "sites.writeStorage": [Profile & { origin: string; set: StorageItems; remove: string[] }, { written: number }];

@@ -223,7 +223,7 @@ extension WebKitTab {
   private static let waitBeforeAskingAgain = 15.0
 
   func makeView() -> WebKitWebView {
-    let view = WebKitWebView(frame: bounds, configuration: WebKitHub.shared.configuration(profile: profile))
+    let view = WebKitWebView(frame: bounds, configuration: WebKitHub.shared.configuration(profile: profile, containerId: containerId))
     WebKitTabHistory.stamp(view, profile: profile)
     return view
   }

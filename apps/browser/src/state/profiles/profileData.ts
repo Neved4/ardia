@@ -1,4 +1,4 @@
-import { clearBrowsingData as clearEngineBrowsingData, deleteProfileData, type BrowsingDataType } from "../../platform/profiles";
+import { clearBrowsingData as clearEngineBrowsingData, clearContainerStorage, deleteContainerStorage, deleteProfileData, type BrowsingDataType } from "../../platform/profiles";
 import { useBrowser } from "../browser/store";
 import { engineProfile } from "../browser/model";
 import { noteProfileDataDeleted } from "../telemetry/profileDataCounts";
@@ -9,7 +9,12 @@ import { warnFor } from "../telemetry/logs";
 export type { BrowsingDataType };
 
 export function clearBrowsingData(profile: string, types: BrowsingDataType[], since?: number) {
-  return whileClearingSiteData(profile, types, () => clearEngineBrowsingData(profile, types, since));
+  return whileClearingSiteData(profile, types, async () => {
+    await clearEngineBrowsingData(profile, types, since);
+    if (!types.includes("siteData") && !types.includes("cache")) return;
+    const results = await Promise.all(Object.keys(useBrowser.getState().containers).map((containerId) => clearContainerStorage(profile, containerId, since)));
+    if (results.some((result) => !result.ok)) throw new Error("Couldn't clear website container storage");
+  });
 }
 
 const CLOSE_DELAY_MS = 1500;
@@ -36,7 +41,11 @@ async function drain() {
         continue;
       }
       forgetSiteDataProfile(engine);
-      const remaining = await deleteProfileData(engine).catch((error: unknown) => [String(error)]);
+      const containerResults = await Promise.all(
+        Object.keys(useBrowser.getState().containers).map((containerId) => deleteContainerStorage(engine, containerId).catch(() => ({ ok: false }))),
+      );
+      const profileResults = await deleteProfileData(engine).catch((error: unknown) => [String(error)]);
+      const remaining = containerResults.some((result) => !result.ok) ? [...profileResults, "website container storage"] : profileResults;
       noteProfileDataDeleted(!remaining.length, consent);
       if (remaining.length) {
         failed.add(engine);

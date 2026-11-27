@@ -3,6 +3,7 @@ import AppKit
 protocol PageTab: NSView {
   var initialURL: String? { get set }
   var profile: String { get set }
+  var containerId: String? { get set }
   var adoptId: String? { get set }
   var transferKey: String? { get set }
   var standalone: Bool { get set }

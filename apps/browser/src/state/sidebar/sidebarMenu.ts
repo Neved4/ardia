@@ -25,8 +25,7 @@ const store = () => useBrowser.getState();
 
 const BROWSER_LAYOUT_MENU_ID = "browserLayout";
 
-export function browserLayoutItems(s: BrowserState, windowId: string): MenuItem[] {
-  const w = s.windows[windowId];
+export function browserLayoutItems(s: BrowserState, windowId: string): MenuItem[] {  const w = s.windows[windowId];
   const inSidebar = tabLayoutOf(s, windowId) === "sidebar";
   const right = s.settings.sidebarSide === "right";
   const minimal = minimalismIn(s, windowId);
@@ -86,8 +85,7 @@ export function sidebarMenuItems(s: BrowserState, windowId: string): MenuItem[] 
       ...(splitViewAvailable
         ? [{ id: "newTabInSplit", title: "New Tab in Split View", symbol: "rectangle.split.2x1", enabled: !!activeTabId(s, windowId), ...menuShortcut("openSplitPane", s) }]
         : []),
-      { id: "reopen", title: "Reopen Closed Tab", symbol: "clock.arrow.circlepath", enabled: !!lastClosedEntry(s, windowId), ...menuShortcut("reopenClosedTab", s) },
-    ],
+      { id: "reopen", title: "Reopen Closed Tab", symbol: "clock.arrow.circlepath", enabled: !!lastClosedEntry(s, windowId), ...menuShortcut("reopenClosedTab", s) },    ],
     [
       { id: "newGroup", title: "New Group", symbol: "folder.badge.plus" },
       newLiveFolderMenuItem(),
@@ -112,8 +110,7 @@ export async function openSidebarMenu(windowId: string) {
   if (choice === "newTab") {
     if (!toggleNewTabBar(windowId)) s.newTab(windowId, { newTabCommand: true });
   } else if (choice === "newTabInSplit") openNewTabInSplit(windowId);
-  else if (choice === "reopen") s.reopenClosed(windowId);
-  else if (choice === "newGroup") {
+  else if (choice === "reopen") s.reopenClosed(windowId);  else if (choice === "newGroup") {
     const id = s.newTab(windowId);
     if (id) newGroupWithSelection(windowId, [id]);
   } else if (choice === "addShared") void addSharedFolder(windowId);

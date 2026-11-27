@@ -13,6 +13,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, weak, nullable) id<ArdiaWebViewDelegate> delegate;
 @property (nonatomic, copy) NSString *profile;
 @property (nonatomic, copy, nullable) NSString *initialURL;
+@property (nonatomic, copy, nullable) NSString *containerId;
 @property (nonatomic, copy, nullable) NSString *adoptId;
 @property (nonatomic, copy, nullable) NSString *transferKey;
 @property (nonatomic) BOOL standalone;

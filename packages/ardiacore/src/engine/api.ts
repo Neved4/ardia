@@ -23,8 +23,7 @@ export type EngineCalls = AutofillCalls & BookmarksCalls & ContentBlockerCalls &
 export type EngineEvents = AutofillEvents & BookmarksEvents & ContentBlockerEvents & DownloadsEvents & EngineDomainEvents & ExtensionsEvents & FaviconsEvents & HistoryEvents & MediaEvents & PasswordsEvents & PermissionsEvents & ProfilesEvents & SearchEvents & SitesEvents & TabsEvents & WebKitEvents & WebViewEvents & WindowsEvents;
 
 export type WindowsHostEvents = {
-  "tabs.windowRequest": WindowRequest;
-};
+  "tabs.windowRequest": WindowRequest;};
 
 export type LinuxHostEvents = {
   "reauth.requested": { purpose: string; granted: boolean; result: string; method?: "polkit" | "loginPassword" };

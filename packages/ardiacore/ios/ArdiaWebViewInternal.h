@@ -159,6 +159,7 @@ struct ArdiaPageFocusState {
   ArdiaCommits _commits;
   NSString *_profile;
   NSString *_initialURL;
+  NSString *_containerId;
   NSString *_adoptId;
   NSString *_transferKey;
   BOOL _standalone;

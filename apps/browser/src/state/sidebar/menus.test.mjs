@@ -79,6 +79,8 @@ test("a shown tab's menu: quick actions, then organize, customize and close, wit
     "    Personal ✓ (off)",
     "  Window [macwindow] ›",
     "    New Window",
+    "Add to Container [square.stack.3d.up] ›",
+    "  New Container… [plus]",
     "Bookmark Tab… [bookmark] ⌘D",
     "---",
     "Customize [slider.horizontal.3] ›",
@@ -93,6 +95,22 @@ test("a shown tab's menu: quick actions, then organize, customize and close, wit
     "  Close Tabs Below (off)",
     "  Close Tabs Above",
   ]);
+});
+
+test("an empty New Tab still has a Move to Container destination", () => {
+  S().hydrate({});
+  const w = S().createWindow();
+  const tab = S().tabs[S().windows[w].tabIds[0]];
+  const item = tabMenuItems(S(), w, tab).find((entry) => entry.id === "moveToContainer");
+  assert.equal(item?.title, "Add to Container");
+  assert.equal(item?.symbol, "square.stack.3d.up");
+});
+
+test("the website-container destination uses Ardia's valid stack symbol", () => {
+  const { w, ids } = windowWith("containers");
+  const item = tabMenuItems(S(), w, S().tabs[ids[0]]).find((entry) => entry.id === "moveToContainer");
+  assert.equal(item?.title, "Add to Container");
+  assert.equal(item?.symbol, "square.stack.3d.up");
 });
 
 test("a tab that isn't shown gets no hints, since the keys act on the shown tab, and Close Tabs Above is in plain sight", () => {
@@ -158,6 +176,8 @@ test("a Top Apps tile: unpin, Move to Pinned or a folder, pinned URL edits under
     "    Personal ✓ (off)",
     "  Window [macwindow] ›",
     "    New Window",
+    "Add to Container [square.stack.3d.up] ›",
+    "  New Container… [plus]",
     "Bookmark Tab… [bookmark]",
     "---",
     "Customize [slider.horizontal.3] ›",

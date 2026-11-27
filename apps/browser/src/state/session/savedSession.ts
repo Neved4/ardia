@@ -1,5 +1,5 @@
 import type { HydrateData } from "../browser/store";
-import type { BrowserWindow, ClosedWindow, ParkedPins, Profile, SplitView, Tab } from "../browser/types";
+import type { BrowserWindow, ClosedWindow, ParkedPins, Profile, SplitView, Tab, WebsiteContainer } from "../browser/types";
 import { parseSaved, type Migrations, type SavedObject } from "../../lib/savedDocument";
 import { sessionWithCleanUpMinutes } from "../settings/cleanUpAfter";
 import { parseSettingsMeta, sessionWithNewTabLinksInLittleArdia, sessionWithSettingsMeta, sessionWithUnreadCountsOffByDefault } from "../settings/settings";
@@ -33,6 +33,8 @@ const snapshotOk = (o: unknown) => isFields(o) && has(o, ["url", "profileId"]);
 const closedTabOk = (o: SavedObject) => isString(o.id) && snapshotOk(o.tab);
 const tabListOk = (o: SavedObject) => isString(o.id) && Array.isArray(o.tabs) && o.tabs.every(snapshotOk);
 const profileOk = (o: SavedObject) => isOwnId(o.id) && isString(o.name);
+const containerColors = ["blue", "green", "orange", "purple", "red", "yellow", "pink", "plum", "neutral"];
+const containerOk = (o: SavedObject) => isOwnId(o.id) && isString(o.name) && isString(o.icon) && containerColors.includes(o.color as string) && typeof o.createdAt === "number" && Number.isFinite(o.createdAt);
 const parkedOk = (o: SavedObject) => Array.isArray(o.tabs) && o.tabs.every(snapshotOk) && Array.isArray(o.groups) && o.groups.every((g) => isFields(g) && isString(g.id));
 
 export type SavedSession = Omit<HydrateData, "history" | "bookmarks" | "downloads"> & {
@@ -72,6 +74,7 @@ export function sessionFromSaved(saved: SavedObject): SavedSession {
   const settings = settingsWithAutoHideTabs(raw.settings, savedWindowRows);
   return {
     windowsAgainstAutoHideTabs: windowsAgainstAutoHideTabs(settings, savedWindowRows),
+    containers: byProfile<WebsiteContainer>(raw.containers, containerOk),
     profiles: profilesWithOwnLooks(profilesKeepingLegacyDots(byProfile<Profile>(raw.profiles, profileOk), raw.settings)),
     profileOrder: strings(raw.profileOrder).filter(notInherited),
     orphanedProfileData: strings(raw.orphanedProfileData),

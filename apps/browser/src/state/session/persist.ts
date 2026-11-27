@@ -24,7 +24,6 @@ import { retiredDefaultsAppliedSince } from "../settings/retiredDefaults";
 import { DOWNLOADS_DOCUMENT, DOWNLOADS_VERSION, hydrateAtLaunch, OLDER_BUILD_SESSION_DOCUMENT, wholeBackup, type LaunchOverrides } from "./launchSession";
 
 export { parseSession, SESSION_MIGRATIONS, SESSION_VERSION } from "./savedSession";
-
 export { loadSession } from "./launchSession";
 
 const SAVE_DELAY_MS = 800;
@@ -43,6 +42,7 @@ const savedFocus = (s: Pick<BrowserState, "windows" | "ui">) => {
 };
 
 const SESSION_FIELDS = {
+  containers: field(["containers"], (s) => s.containers),
   profiles: field(["profiles"], (s) => s.profiles),
   profileOrder: field(["profileOrder"], (s) => s.profileOrder),
   orphanedProfileData: field(["orphanedProfileData"], (s) => s.orphanedProfileData),
@@ -93,7 +93,6 @@ const DOWNLOADS_FIELDS = {
 const DOCS: Doc[] = [doc(DOWNLOADS_DOCUMENT, DOWNLOADS_VERSION, DOWNLOADS_FIELDS), doc(SESSION_DOCUMENT, SESSION_VERSION, SESSION_FIELDS)];
 
 let sessionFile = SESSION_DOCUMENT;
-
 function write(name: string, json: string): boolean {
   try {
     writeDocument(name, json);

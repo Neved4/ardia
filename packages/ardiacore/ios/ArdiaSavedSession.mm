@@ -49,7 +49,7 @@ bool EarlyLaunchFieldsWellTyped(NSDictionary *document) {
 @implementation ArdiaSavedSession
 
 + (NSInteger)version {
-  return 11;
+  return 12;
 }
 
 + (instancetype)readFrom:(NSString *)directory {

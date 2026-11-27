@@ -28,7 +28,6 @@ const { shellNativeModules } = await import("../../test-native/shell.ts");
 const { useToasts } = await import("../app/toasts.ts");
 const { engineCalls } = await import("../../test-native/ardiacore.ts");
 const confirmNo = shellNativeModules.ArdiaDialogs.confirm;
-
 const S = () => useBrowser.getState();
 const settle = () => new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -78,8 +77,46 @@ test("Back across engines cancelled while the page is held keeps where Back goes
   webviews.clear();
 });
 
-test("a streaming site moves to WebKit quietly: the old page is held until the new one paints, and Move Back stays in the tab's engine", async () => {
+test("an empty New Tab can be assigned a container and keeps that assignment until navigation", async () => {
   S().hydrate({});
+  const w = S().createWindow();
+  const tabId = model.activeTabId(S(), w);
+  const containerId = S().createContainer({ name: "Work" });
+
+  assert.equal(S().tabs[tabId].url, "");
+  assert.equal(await openPageIn(tabId, "webkit", { containerId, checkWork: false }), true);
+  assert.equal(S().tabs[tabId].containerId, containerId);
+  assert.equal(S().tabs[tabId].engine, "webkit");
+  assert.equal(S().tabs[tabId].url, "");
+
+  assert.equal(await openPageIn(tabId, "chromium", { containerId: null, checkWork: false }), true);
+  assert.equal(S().tabs[tabId].containerId, undefined);
+  assert.equal(S().tabs[tabId].engine, "chromium");
+});
+
+test("moving a tab between default browsing and containers changes its storage partition", async () => {
+  S().hydrate({});
+  const w = S().createWindow({ url: "https://work.example/account" });
+  const tabId = model.activeTabId(S(), w);
+  const work = S().createContainer({ name: "Work" });
+  const personal = S().createContainer({ name: "Personal" });
+
+  assert.equal(await openPageIn(tabId, "webkit", { containerId: work, checkWork: false }), true);
+  assert.equal(S().tabs[tabId].engine, "webkit");
+  assert.equal(S().tabs[tabId].containerId, work);
+  assert.equal(S().tabs[tabId].page.nav.url, "https://work.example/account");
+
+  const workNavSeq = S().tabs[tabId].page.nav.seq;
+  assert.equal(await openPageIn(tabId, "webkit", { containerId: personal, checkWork: false }), true);
+  assert.equal(S().tabs[tabId].containerId, personal);
+  assert.notEqual(S().tabs[tabId].page.nav.seq, workNavSeq);
+
+  assert.equal(await openPageIn(tabId, "chromium", { containerId: null, checkWork: false }), true);
+  assert.equal(S().tabs[tabId].engine, "chromium");
+  assert.equal(S().tabs[tabId].containerId, undefined);
+});
+
+test("a streaming site moves to WebKit quietly: the old page is held until the new one paints, and Move Back stays in the tab's engine", async () => {  S().hydrate({});
   S().updateSettings({ protectedVideoInWebKit: true });
   const w = S().createWindow({ url: "https://www.netflix.com/watch/1" });
   const tabId = model.activeTabId(S(), w);

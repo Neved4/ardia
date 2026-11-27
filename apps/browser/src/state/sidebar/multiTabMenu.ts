@@ -84,7 +84,7 @@ function sendTabs(windowId: string, ids: string[], profileId: string, to: Destin
   else if (to.kind === "window") {
     const target = store().moveTabsToWindow(ids, to.windowId);
     if (target) switchToTab(store().windows[target]?.activeTabIds[profileId] ?? ids[0]!);
-  } else void bookmarkTabs(windowId, ids, to);
+  } else if (to.kind === "folder" || to.kind === "newFolder") void bookmarkTabs(windowId, ids, to);
 }
 
 export async function openMultiMenu(windowId: string, shown: string[]) {

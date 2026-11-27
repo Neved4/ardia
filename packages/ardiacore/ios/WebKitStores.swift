@@ -4,12 +4,15 @@ import WebKit
 final class WebKitStores {
   enum StoreID: Hashable {
     case profile(String)
-    case privateSession(name: String, token: String)
+    case container(profile: String, id: String)
+    case privateSession(name: String, token: String, containerId: String?)
 
     var wireKey: String {
       switch self {
       case .profile(let name): name
-      case .privateSession(let name, let token): "private@\(name)#\(token)"
+      case .container(let profile, let id): "container@\(profile)#\(id)"
+      case .privateSession(let name, let token, let containerId):
+        "private@\(name)#\(token)\(containerId.map { ":\($0)" } ?? "")"
       }
     }
   }
@@ -24,7 +27,8 @@ final class WebKitStores {
   }
 
   private var persistent: [String: WKWebsiteDataStore] = [:]
-  private var privateSessions: [String: PrivateSession] = [:]
+  private var containers: [UUID: WKWebsiteDataStore] = [:]
+  private var privateSessions: [String: [String: PrivateSession]] = [:]
   private var deletedProfiles: [String: WKWebsiteDataStore] = [:]
   private var heldForTest: [String: WKWebsiteDataStore] = [:]
   private var resumeHosts: [StoreID: WKWebView] = [:]
@@ -32,23 +36,32 @@ final class WebKitStores {
 
   static func isPrivate(_ profile: String) -> Bool { ArdiaHost.isPrivateProfile(profile) }
 
-  private func session(_ name: String) -> PrivateSession {
-    if let live = privateSessions[name] { return live }
+  private func session(_ name: String, containerId: String? = nil) -> PrivateSession {
+    let scope = containerId ?? ""
+    if let live = privateSessions[name]?[scope] { return live }
     let made = PrivateSession(store: .nonPersistent(), token: UUID().uuidString)
-    privateSessions[name] = made
+    privateSessions[name, default: [:]][scope] = made
     return made
   }
 
   func id(of profile: String) -> StoreID {
     guard Self.isPrivate(profile) else { return .profile(profile) }
     let name = ArdiaHost.baseProfile(of: profile)
-    return .privateSession(name: name, token: session(name).token)
+    return .privateSession(name: name, token: session(name).token, containerId: nil)
+  }
+
+  func id(of profile: String, containerId: String?) -> StoreID {
+    guard let containerId, !containerId.isEmpty else { return id(of: profile) }
+    guard Self.isPrivate(profile) else { return .container(profile: profile, id: containerId) }
+    let name = ArdiaHost.baseProfile(of: profile)
+    return .privateSession(name: name, token: session(name, containerId: containerId).token, containerId: containerId)
   }
 
   func isLive(_ id: StoreID) -> Bool {
     switch id {
-    case .profile: true
-    case .privateSession(let name, let token): privateSessions[name]?.token == token
+    case .profile, .container: true
+    case .privateSession(let name, let token, let containerId):
+      privateSessions[name]?[containerId ?? ""]?.token == token
     }
   }
 
@@ -60,7 +73,26 @@ final class WebKitStores {
     return bytes.withUnsafeBufferPointer { NSUUID(uuidBytes: $0.baseAddress!) as UUID }
   }
 
-  func dataStore(for profile: String) -> WKWebsiteDataStore {
+  static func containerStoreIdentifier(_ profile: String, _ containerId: String) -> UUID {
+    let scope = LaunchConfig.shared.dataDirectory ?? ""
+    let input = Data("ardia.webkit.container|\(scope)|\(profile)|\(containerId)".utf8)
+    var bytes = Array(SHA256.hash(data: input).prefix(16))
+    bytes[6] = (bytes[6] & 0x0F) | 0x50
+    bytes[8] = (bytes[8] & 0x3F) | 0x80
+    return bytes.withUnsafeBufferPointer { NSUUID(uuidBytes: $0.baseAddress!) as UUID }
+  }
+
+  func dataStore(for profile: String, containerId: String? = nil) -> WKWebsiteDataStore {
+    if let containerId, !containerId.isEmpty {
+      if Self.isPrivate(profile) {
+        return session(ArdiaHost.baseProfile(of: profile), containerId: containerId).store
+      }
+      let identifier = Self.containerStoreIdentifier(profile, containerId)
+      if let store = containers[identifier] { return store }
+      let store = WKWebsiteDataStore(forIdentifier: identifier)
+      containers[identifier] = store
+      return store
+    }
     if Self.isPrivate(profile) { return session(ArdiaHost.baseProfile(of: profile)).store }
     if let store = persistent[profile] ?? deletedProfiles[profile] { return store }
     let identifier = Self.storeIdentifier(profile)
@@ -90,9 +122,11 @@ final class WebKitStores {
   }
 
   func liveDataStore(for profile: String, wireKey: String) -> WKWebsiteDataStore? {
-    guard Self.isPrivate(profile) else { return wireKey == profile ? dataStore(for: profile) : nil }
+    guard !Self.isPrivate(profile) else { return wireKey == profile ? dataStore(for: profile) : nil }
     let name = ArdiaHost.baseProfile(of: profile)
-    guard let live = privateSessions[name], wireKey == StoreID.privateSession(name: name, token: live.token).wireKey else { return nil }
+    guard let live = privateSessions[name]?[""],
+      wireKey == StoreID.privateSession(name: name, token: live.token, containerId: nil).wireKey
+    else { return nil }
     return live.store
   }
 
@@ -117,15 +151,18 @@ final class WebKitStores {
     update(id(of: profile)) { $0.forgetSiteChoices(since: since) }
   }
 
-  func endPrivateSession(_ name: String) -> (id: StoreID, store: WKWebsiteDataStore)? {
-    guard let ended = privateSessions.removeValue(forKey: name) else { return nil }
-    let id = StoreID.privateSession(name: name, token: ended.token)
-    states.removeValue(forKey: id)
-    return (id, ended.store)
+  func endPrivateSession(_ name: String) -> [(id: StoreID, store: WKWebsiteDataStore)] {
+    guard let ended = privateSessions.removeValue(forKey: name) else { return [] }
+    return ended.map { scope, session in
+      let containerId = scope.isEmpty ? nil : scope
+      let id = StoreID.privateSession(name: name, token: session.token, containerId: containerId)
+      states.removeValue(forKey: id)
+      return (id, session.store)
+    }
   }
 
-  func resumeHost(for profile: String, configuration: () -> WKWebViewConfiguration) -> WKWebView {
-    let id = id(of: profile)
+  func resumeHost(for profile: String, containerId: String? = nil, configuration: () -> WKWebViewConfiguration) -> WKWebView {
+    let id = resumeStoreID(profile, containerId: containerId)
     if let host = resumeHosts[id] { return host }
     let host = WKWebView(frame: .zero, configuration: configuration())
     resumeHosts[id] = host
@@ -138,11 +175,35 @@ final class WebKitStores {
     return Array(using.values)
   }
 
-  func takeResumeHost(of profile: String) -> WKWebView? { resumeHosts.removeValue(forKey: .profile(profile)) }
+  func takeResumeHost(of profile: String, containerId: String? = nil) -> WKWebView? {
+    resumeHosts.removeValue(forKey: resumeStoreID(profile, containerId: containerId))
+  }
+
+  private func resumeStoreID(_ profile: String, containerId: String?) -> StoreID {
+    if let containerId, !containerId.isEmpty {
+      if Self.isPrivate(profile) {
+        let name = ArdiaHost.baseProfile(of: profile)
+        return .privateSession(name: name, token: session(name, containerId: containerId).token, containerId: containerId)
+      }
+      return .container(profile: profile, id: containerId)
+    }
+    return id(of: profile)
+  }
 
   func forgetProfile(_ profile: String) -> WKWebsiteDataStore? {
     deletedProfiles[profile] = .nonPersistent()
     return persistent.removeValue(forKey: profile)
+  }
+
+  func forgetContainer(_ profile: String, containerId: String) -> WKWebsiteDataStore? {
+    if Self.isPrivate(profile) {
+      let name = ArdiaHost.baseProfile(of: profile)
+      let removed = privateSessions[name]?.removeValue(forKey: containerId)
+      guard let removed else { return nil }
+      states.removeValue(forKey: .privateSession(name: name, token: removed.token, containerId: containerId))
+      return removed.store
+    }
+    return containers.removeValue(forKey: Self.containerStoreIdentifier(profile, containerId))
   }
 
   func holdForTest(_ profile: String) { heldForTest[profile] = dataStore(for: profile) }

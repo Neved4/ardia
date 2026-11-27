@@ -36,12 +36,14 @@ test("only web pages have a site to configure", () => {
 
 const S = () => useBrowser.getState();
 
-function pendingClear(engine) {
+function pendingClear(engine, inContainer = false) {
   S().hydrate({});
   const work = S().createProfile({ name: "Work" });
   const w = S().createWindow({ url: "https://a.com/x", profileId: work });
   const id = S().windows[w].tabIds[0];
   if (engine) S().updateTab(id, { engine });
+  const containerId = inContainer ? S().createContainer({ name: "Work" }) : undefined;
+  if (containerId) S().updateTab(id, { containerId });
   const view = { cleared: 0, reloaded: 0 };
   webviews.set(id, { clearSiteData: async () => (view.cleared++, { cookies: 2, storage: true }), reload: async () => void view.reloaded++ });
   const recording = (module, calls) => {
@@ -90,3 +92,23 @@ for (const engine of [undefined, "webkit"])
     assert.equal(await declined.finish(false), null);
     assert.deepEqual(declined.engineCalls, []);
   });
+
+test("Clear Cookies and Site Data targets the container partition for a container tab", async () => {
+  const container = pendingClear(undefined, true);
+  assert.equal(await container.finish(true), 0);
+  assert.deepEqual(container.engineCalls, [{ verb: "clearData", profile: container.work, origin: "https://a.com", engine: "webkit", containerId: S().tabs[container.id].containerId }]);
+});
+
+test("a WebKit tab clears the origin its confirmation named in its profile's store, never the page it shows when the clear runs", async () => {
+  const stay = pendingClear("webkit");
+  assert.equal(await stay.finish(true), 0);
+  assert.deepEqual(clears(stay.engineCalls), [["https://a.com", "chromium"], ["https://a.com", "webkit"]]);
+  assert.equal(stay.view.cleared, 0, "not the view's own clear, which reads the page's host when native runs it");
+  assert.equal(stay.view.reloaded, 1);
+  const moved = pendingClear("webkit");
+  S().updateTab(moved.id, { url: "https://b.com/", title: "B" }, {});
+  await moved.finish(true);
+  assert.deepEqual(clears(moved.engineCalls), [["https://a.com", "chromium"], ["https://a.com", "webkit"]]);
+  assert.equal(moved.view.cleared, 0);
+  assert.equal(moved.view.reloaded, 0);
+});

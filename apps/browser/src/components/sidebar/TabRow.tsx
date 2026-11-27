@@ -1,7 +1,7 @@
 import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Animated, Pressable, TextInput, View, type GestureResponderEvent, type Insets, type TextStyle } from "react-native";
 import { toggleMute } from "../../state/browser/actions";
-import { caretColorOnRow, hex, layout, useTheme } from "../ui/theme";
+import { caretColorOnRow, hex, layout, PROFILE_COLORS, useTheme } from "../ui/theme";
 import { arcSelectedFill } from "../ui/tokens";
 import { useIsActiveTab, usePageProfileId, useTab, useWindow, useWindowId } from "../../state/browser/hooks";
 import { returnToPinnedUrl } from "../../state/pins/actions";
@@ -44,6 +44,7 @@ import { entryKey } from "../../state/sidebar/entryKey";
 import type { RowSection } from "./dragModel";
 import type { SplitDropSide } from "../../state/drag/drops";
 import { buttonMotion, usePressScaleMotion } from "../ui/motion";
+import { useWebsiteContainer } from "../../state/containers/hooks";
 
 export const TabRowItem = memo(function TabRowItem({
   tabId,
@@ -77,6 +78,7 @@ export const TabRow = memo(function TabRow({
   const tokens = useSidebarTokens();
   const windowId = useWindowId();
   const { tab, flags } = useRowState(tabId, windowId);
+  const container = useWebsiteContainer(tab?.containerId);
   const active = !!(flags & ACTIVE);
   const selected = !!(flags & SELECTED);
   const playingAudio = !!(flags & PLAYING);
@@ -166,6 +168,7 @@ export const TabRow = memo(function TabRow({
         <>
           <RowHoverFill cell={cell} pressed={pressed} color={pressed ? pressedFill : hoverFill} radius={radius.chrome} />
           {surface}
+          {container ? <View pointerEvents="none" style={{ position: "absolute", right: 0, top: 6, bottom: 6, width: 3, borderRadius: 2, backgroundColor: PROFILE_COLORS[container.color].swatch }} /> : null}
           {previewFade(preview, <>
             {iconSlot}
             {pip && (

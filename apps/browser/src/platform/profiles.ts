@@ -3,6 +3,10 @@ import { call, on, type BrowsingDataType } from "@ardia/ardiacore";
 export type { BrowsingDataType };
 export type { WindowProfileSwapped } from "@ardia/shell";
 
+export const clearContainerStorage = (profile: string, containerId: string, since?: number) =>
+  call("profiles.clearContainerStorage", { profile, containerId, since: since ?? null });
+export const deleteContainerStorage = (profile: string, containerId: string) =>
+  call("profiles.deleteContainerStorage", { profile, containerId });
 export const clearBrowsingData = (profile: string, types: BrowsingDataType[], since?: number) =>
   call("profiles.clearBrowsingData", { profile, types, since: since ?? null }).then(() => {});
 export const releaseProfile = (profile: string) => call("profiles.release", { profile });

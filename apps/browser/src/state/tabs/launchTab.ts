@@ -15,7 +15,7 @@ export function launchTab(s: Pick<BrowserState, "windows" | "tabs" | "settings" 
   const w = windowId ? s.windows[windowId] : undefined;
   if (!isRegularWindow(w) || s.settings.restoreSession === false) return null;
   const t = s.tabs[w.activeTabIds[w.profileId] ?? ""];
-  if (!t || t.windowId !== w.id || t.profileId !== w.profileId || !WEB.test(t.url)) return null;
+  if (!t || t.containerId || t.windowId !== w.id || t.profileId !== w.profileId || !WEB.test(t.url)) return null;
   if (wakeOf(t) || tabEngine(s, t.id) !== "chromium") return null;
   return { id: t.id, url: t.url, profile: engineProfile(s, t.profileId) };
 }

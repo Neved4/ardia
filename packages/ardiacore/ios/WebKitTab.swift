@@ -10,6 +10,7 @@ final class WebKitTab: NSView, WKNavigationDelegate, WKUIDelegate {
 
   weak var delegate: WebKitTabDelegate?
   var profile = ""
+  var containerId: String?
   var initialURL: String?
   var adoptId: String?
   var transferKey: String?
@@ -81,19 +82,8 @@ final class WebKitTab: NSView, WKNavigationDelegate, WKUIDelegate {
 
   private func begin() {
     guard !closed else { return }
-    if let key = transferKey {
-      let handedOver = WebKitHub.shared.transfers.isPrepared(key) ? WebKitHub.shared.transfers.liveTab(key).flatMap { $0 === self ? nil : $0.relinquish() } : nil
-      let parked = WebKitHub.shared.transfers.claimParked(key) as? WebKitWebView
-      WebKitHub.shared.transfers.noteLive(self, key: key)
-      if let view = handedOver ?? parked {
-        if let parked, parked !== view { WebKitHub.close(parked) }
-        attach(view)
-        emitEverything()
-        return
-      }
-    }
-    if let id = adoptId, id.hasPrefix("webkit:"), let offered = WebKitHub.shared.transfers.claimOffered(id) as? WebKitWebView {
-      attach(offered)
+    if let view = takeReusableWebView() {
+      attach(view)
       emitEverything()
       return
     }
@@ -408,7 +398,7 @@ final class WebKitTab: NSView, WKNavigationDelegate, WKUIDelegate {
 
   func clearSiteData(_ reply: @escaping (Any?, String?) -> Void) {
     guard !host.isEmpty else { return reply(["cookies": false, "storage": false], nil) }
-    WebKitHub.shared.clearSiteData(profile: profile, host: host) { reply($0, nil) }
+    WebKitHub.shared.clearSiteData(profile: profile, host: host, containerId: containerId) { reply($0, nil) }
   }
 
   func pageMessage(_ kind: String, data: Any?, frame: String, frameInfo: WKFrameInfo) {

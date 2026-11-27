@@ -92,8 +92,7 @@ function registrableForTests(host: string): string {
 
 export const contentBlockerSites = { enabled: true, allowed: new Set<string>(), written: [] as string[], removed: [] as string[], unsupported: false, unready: false, followerFails: false };
 export const commitReports: boolean[] = [];
-export const commitReportFailures = { next: 0 };
-export const loadedEngineProfiles = new Set<string>([""]);
+export const commitReportFailures = { next: 0 };export const loadedEngineProfiles = new Set<string>([""]);
 export const idleProfileUnloads = new Map<string, CallResult<"profiles.unloadIdle"> & { closing?: () => void }>();
 export const profilesLoadedCall = { known: true };
 
@@ -385,7 +384,9 @@ const cliControl = (on: boolean | null) => testGlobals.acTestCliControl?.(on) ??
 
 export const cancelledDownloads: string[] = [];
 export const downloadSettingsWrites: { profile: string; folder?: string; askWhereToSave?: boolean }[] = [];
-export const clearedSiteData: { profile: string; origin: string; engine?: string }[] = [];
+export const clearedSiteData: { profile: string; origin: string; engine?: string; containerId?: string }[] = [];
+export const containerStorageCalls: { profile: string; containerId: string; since?: number | null }[] = [];
+export const containerStorageClear = { ok: true };
 const endedWebKitSessions: string[] = [];
 export const removedStagings: string[] = [];
 export const stagingRemovals = { ok: true };
@@ -566,13 +567,23 @@ const fakeModules = {
     },
     deleteData: ({ profile }) => (deletedProfileData.push(profile), { remaining: profileDataLeft.get(profile) ?? [] }),
     clearBrowsingData: () => null,
+    clearContainerStorage: ({ profile, containerId, since }) => {
+      containerStorageCalls.push({ profile, containerId, since });
+      if (!containerStorageClear.ok) throw new Error("container storage could not be cleared");
+      return { ok: true as const };
+    },
+    deleteContainerStorage: ({ profile, containerId }) => {
+      containerStorageCalls.push({ profile, containerId });
+      if (!containerStorageClear.ok) throw new Error("container storage could not be removed");
+      return { ok: true as const };
+    },
   }),
   ArdiaSites: domain("sites", {
     settings: ({ profile, origin }) => siteSettingsOf(profile, origin) as SiteSettings,
     setSetting: ({ profile, origin, type, value }) => (siteSettingsDb.set(`${profile}\n${origin}`, { ...(siteSettingsDb.get(`${profile}\n${origin}`) ?? {}), [type]: value }), null),
     origins: ({ profile }) => [...siteSettingsDb.keys()].filter((k) => k.startsWith(`${profile}\n`)).map((k) => k.slice(profile.length + 1)),
     reset: ({ profile, origin }) => (siteSettingsDb.delete(`${profile}\n${origin}`), null),
-    clearData: ({ profile, origin, engine }) => (clearedSiteData.push({ profile, origin, engine }), { cookies: 0, storage: true }),
+    clearData: ({ profile, origin, engine, containerId }) => (clearedSiteData.push({ profile, origin, engine, ...(containerId ? { containerId } : {}) }), { cookies: 0, storage: true }),
     zoomLevels: ({ profile }) => Object.fromEntries([...siteZoomDb].filter(([k]) => k.startsWith(`${profile}\n`)).map(([k, v]) => [k.slice(profile.length + 1), v])),
     setZoom: ({ profile, host, zoom }) => (siteZoomDb.set(`${profile}\n${host}`, zoom), null),
     preloadPages: () => false,
@@ -580,8 +591,7 @@ const fakeModules = {
     registrableDomains: ({ hosts }) => {
       if (contentBlockerSites.unsupported) throw Object.assign(new Error("Unknown call"), { code: "ERR_UNKNOWN_CALL" });
       return { domains: hosts.map(registrableForTests) };
-    },
-  }),
+    },  }),
   ArdiaPasswords: domain(
     "passwords",
     {

@@ -142,7 +142,7 @@ export async function goBackAcrossEngines(tabId: string, mayAct: () => boolean =
   return true;
 }
 
-type MoveOptions = { rule?: PageEngine | null; checkWork?: boolean; mayWrite?: () => boolean; routedHere?: (url: string) => boolean; onStayed?: () => void };
+type MoveOptions = { rule?: PageEngine | null; containerId?: string | null; checkWork?: boolean; mayWrite?: () => boolean; routedHere?: (url: string) => boolean; onStayed?: () => void };
 
 const switchingTabs = new Set<string>();
 
@@ -160,14 +160,21 @@ async function movePage(tabId: string, engine: PageEngine, options: MoveOptions)
   const consent = consentToken();
   const t = store().tabs[tabId];
   if (!t) return false;
+  const containerId = options.containerId === undefined ? t.containerId : options.containerId || undefined;
+  if (containerId && engine !== "webkit") return false;
   const url = t.url || navigationOf(t)?.url || "";
-  if (!canSwitchEngine(url) && !(engine === "chromium" && webStorePage(url))) return false;
   const forced = modeEngineFor(store(), t, url);
   if (forced && forced !== engine) return false;
+  if (!url) {
+    if (options.routedHere) return false;
+    store().updateTab(tabId, { engine, containerId });
+    return true;
+  }
+  if (!canSwitchEngine(url) && !(engine === "chromium" && webStorePage(url))) return false;
   if (options.routedHere && !options.routedHere(url)) return false;
   const saveRule = () => options.rule !== undefined && !isIncognitoProfile(t.profileId) && setWebsiteEngine(url, options.rule);
   clearEngineOffer(tabId);
-  if (tabEngine(store(), tabId) === engine) {
+  if (tabEngine(store(), tabId) === engine && t.containerId === containerId) {
     saveRule();
     return true;
   }
@@ -200,12 +207,12 @@ async function movePage(tabId: string, engine: PageEngine, options: MoveOptions)
     return false;
   }
   saveRule();
-  if (tabEngine(store(), tabId) === engine) {
+  if (tabEngine(store(), tabId) === engine && now.containerId === containerId) {
     dropSwap(tabId, held);
     return true;
   }
   forgetPageMadeTab(tabId);
-  store().updateTab(tabId, wantsPage(now) ? { engine, page: loadedPage(navigationTo(now.url || url, true)) } : { engine });
+  store().updateTab(tabId, wantsPage(now) ? { engine, containerId, page: loadedPage(navigationTo(now.url || url, true)) } : { engine, containerId });
   return true;
 }
 

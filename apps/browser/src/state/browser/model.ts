@@ -88,6 +88,7 @@ export const snapshotTab = (t: Tab): TabSnapshot => ({
   ...(t.tileLetters ? { tileLetters: t.tileLetters } : {}),
   ...(t.reopenAtPinnedUrl !== undefined ? { reopenAtPinnedUrl: t.reopenAtPinnedUrl } : {}),
   profileId: t.profileId,
+  ...(t.containerId ? { containerId: t.containerId } : {}),
   lastActiveAt: t.lastActiveAt,
 });
 

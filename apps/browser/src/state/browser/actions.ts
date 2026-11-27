@@ -269,7 +269,7 @@ export function openUrls(urls: string[], windowId?: string | null) {
   }
 }
 
-export async function openProfileMenu(windowId: string) {
+export async function openProfileMenu(windowId: string, openContainers?: () => void) {
   const s = useBrowser.getState();
   const current = s.windows[windowId]?.profileId;
   const items: ChoiceItem<{ open: "switch" | "window"; profileId: string }>[] = [
@@ -285,6 +285,7 @@ export async function openProfileMenu(windowId: string) {
     { separator: true },
     { id: "new", title: "New Profile…", symbol: "plus" },
     { id: "edit", title: "Manage Profiles…", symbol: "gearshape" },
+    ...(openContainers ? [{ id: "containers", title: "Manage Containers…", symbol: "square.stack.3d.up" }] : []),
   ];
   const choice = await chooseFromMenu(items);
   if (!choice) return;
@@ -295,4 +296,5 @@ export async function openProfileMenu(windowId: string) {
     const id = await requestCreateProfile(windowId);
     if (id) foreignWriteHooks.around(() => switchProfile(windowId, id));
   } else if (choice === "edit") openSettings("profiles", current);
+  else if (choice === "containers") openContainers?.();
 }

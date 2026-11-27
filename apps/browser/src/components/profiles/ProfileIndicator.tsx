@@ -9,6 +9,8 @@ import { openProfileMenu } from "../../state/browser/actions";
 import { WINDOW_CHROME } from "../../lib/windowChrome";
 import { CARD_INSET } from "../../lib/windowLayout";
 import { buttonMotion, usePressScaleMotion } from "../ui/motion";
+import { openWebsiteContainerMenu } from "../containers/ContainerMenu";
+import { useWebsiteContainerCount } from "../../state/containers/hooks";
 
 const PAD = 9;
 const HEIGHT = 34;
@@ -20,15 +22,16 @@ function useIndicator(room: number, profileShown: boolean) {
   const theme = useTheme();
   const incognito = useIsIncognito();
   const profiles = useProfiles();
+  const containerCount = useWebsiteContainerCount();
   const profile = useWindowProfile();
   const title = incognito ? "Incognito" : profile.name;
   const textWidth = useMeasuredWidth(`profile-name|${title}`);
-  const shown = profileShown && (incognito || profiles.length >= 2) && room >= ICON_WIDTH;
+  const shown = profileShown && (incognito || profiles.length >= 2 || containerCount > 0) && room >= ICON_WIDTH;
   const nameRoom = room - 2 * PAD;
   const showName = !!textWidth && (textWidth <= nameRoom || nameRoom >= MIN_CUT_NAME);
   const width = !shown ? 0 : showName ? Math.min(room, textWidth + 2 * PAD) : ICON_WIDTH;
   const color = incognito ? theme.textPrimary : profileNameColor(profile, theme.dark);
-  return { incognito, title, textWidth, shown, showName, width, color, profileId: profile.id };
+  return { incognito, title, textWidth, shown, showName, width, color, profileId: profile.id, hasContainers: containerCount > 0 };
 }
 
 export const useProfileIndicatorWidth = (room: number, profileShown = true) => useIndicator(room, profileShown).width;
@@ -43,7 +46,7 @@ export function ProfileIndicator({ room, profileShown = true }: { room: number; 
   const theme = useTheme();
   const windowId = useWindowId();
   const { hovered, hoverProps } = useHover();
-  const { incognito, title, textWidth, shown, showName, width, color, profileId } = useIndicator(room, profileShown);
+  const { incognito, title, textWidth, shown, showName, width, color, profileId, hasContainers } = useIndicator(room, profileShown);
   const pressMotion = usePressScaleMotion(!incognito && !showName && !!textWidth, buttonMotion.iconPressScale);
   const indicator = useRef<View>(null);
   if (!shown) return null;
@@ -62,7 +65,7 @@ export function ProfileIndicator({ room, profileShown = true }: { room: number; 
       </View>
       <ContextMenuArea onContextMenu={() => !incognito && void openProfileItemMenu(profileId, "sidebar", windowId, indicator.current)}>
         <Pressable
-          onPress={() => !incognito && void openProfileMenu(windowId)}
+          onPress={() => !incognito && void openProfileMenu(windowId, () => void openWebsiteContainerMenu(windowId))}
           onPressIn={pressMotion.onPressIn}
           onPressOut={pressMotion.onPressOut}
           disabled={incognito}

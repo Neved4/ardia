@@ -136,8 +136,7 @@ export function menuState(s: BrowserState, liveOfTab = (id: string) => shownLive
   if (!switchableEngine(s, page?.url)) disabled.push("togglePageEngine");
   const reader = page ? readerFor(page.id) : undefined;
   if (reader?.active) titles.toggleReader = "Hide Reader";
-  if (!reader?.active && !reader?.available) disabled.push("toggleReader");
-  if (page?.url && isBookmarked(s, bookmarkProfile, page.url)) {
+  if (!reader?.active && !reader?.available) disabled.push("toggleReader");  if (page?.url && isBookmarked(s, bookmarkProfile, page.url)) {
     titles.bookmarkPage = "Edit Bookmark…";
   }
 

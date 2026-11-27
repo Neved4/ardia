@@ -191,6 +191,7 @@ export type WebViewProps = ViewProps & {
   retired?: boolean;
   url?: string;
   profile?: string;
+  containerId?: string;
   adoptId?: string;
   tabId?: string;
   temporary?: boolean;

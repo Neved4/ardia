@@ -28,9 +28,8 @@ export const setSiteSetting = (profile: string, origin: string, type: SiteSettin
 export const getSiteSettings = (profile: string, origin: string, engine: PageEngine = "chromium") => call("sites.settings", { profile, origin, engine });
 export const getSiteSettingsOrigins = (profile: string) => call("sites.origins", { profile });
 export const resetSiteSettings = (profile: string, origin: string) => changingSettings(() => call("sites.reset", { profile, origin }));
-export const clearSiteData = (profile: string, origin: string, engine: PageEngine = "chromium") =>
-  call("sites.clearData", { profile, origin, engine });
-
+export const clearSiteData = (profile: string, origin: string, engine: PageEngine = "chromium", containerId?: string) =>
+  call("sites.clearData", { profile, origin, engine, ...(containerId ? { containerId } : {}) });
 export const setZoom = (profile: string, host: string, zoom: number) => call("sites.setZoom", { profile, host, zoom });
 export const getZoomLevels = (profile: string) => call("sites.zoomLevels", { profile });
 export const getPreloadPages = (profile: string) => call("sites.preloadPages", { profile });

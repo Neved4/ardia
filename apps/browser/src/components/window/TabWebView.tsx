@@ -202,6 +202,7 @@ function EngineWebView({ tabId, visible, selected = true, warm, peekOf, engine, 
       style={arriving ? ARRIVING : StyleSheet.absoluteFill}
       url={navigation?.url ?? (adoptId ? tab()?.url : undefined)}
       profile={currentEngineProfile(profileId)}
+      containerId={tab()?.containerId}
       adoptId={adoptId}
       tabId={tabId}
       temporary={peekOf !== undefined}

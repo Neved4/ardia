@@ -108,6 +108,25 @@ test("profiles sharing data read one engine's history and bookmarks after the se
   stops.forEach((stop) => stop());
 });
 
+test("container tabs keep their WebKit store assignment through session restore", () => {
+  reset();
+  stub.docs.clear();
+  const stopSaving = startPersistence();
+  const containerId = S().createContainer({ name: "Work", color: "green" });
+  const windowId = S().createWindow({ url: "start.example" });
+  const tabId = S().newTab(windowId, { url: "https://work.example/", snapshot: { containerId, engine: "webkit" } });
+  flushPersistence();
+  stopSaving();
+  const saved = JSON.parse(stub.docs.get("session.json"));
+  assert.equal(saved.containers[containerId].name, "Work");
+  assert.equal(saved.tabs.find((tab) => tab.id === tabId).containerId, containerId);
+  assert.equal(saved.launchTab, null);
+  reset();
+  S().hydrate(loadSession());
+  assert.equal(S().tabs[tabId].containerId, containerId);
+  assert.equal(S().containers[containerId].color, "green");
+});
+
 const flushEvents = () => new Promise((r) => setTimeout(r, 0));
 const DAY = 86_400_000;
 
