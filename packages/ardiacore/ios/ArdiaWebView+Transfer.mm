@@ -36,7 +36,7 @@ static NSString *SavedHistoryGeneration(ArdiaCoreProfile *profile) {
   return generation;
 }
 
-static ArdiaCoreTab *RestoreSavedHistory(ArdiaWindowController *controller, ArdiaCoreProfile *profile, NSString *key, NSString *url) {
+static ArdiaCoreTab *RestoreSavedHistory(ArdiaWindowController *controller, ArdiaCoreProfile *profile, NSString *key, NSString *url, NSString *containerId) {
   if (!key.length || !url.length || [BoundRestoreKeys() containsObject:key] || !profile.path.length ||
       profile.offTheRecord || !controller.coreWindow)
     return nil;
@@ -56,7 +56,7 @@ static ArdiaCoreTab *RestoreSavedHistory(ArdiaWindowController *controller, Ardi
   NSString *generation = SavedHistoryGeneration(profile);
   if (!generation || ![saved[@"generation"] isEqual:generation]) return nil;
   controller.hostChanges++;
-  ArdiaCoreTab *tab = [controller.coreWindow restoreTab:state profile:profile foreground:NO];
+  ArdiaCoreTab *tab = [controller.coreWindow restoreTab:state profile:profile foreground:NO containerId:containerId];
   controller.hostChanges--;
   [tab loadIfNeeded];
   return tab;
@@ -72,7 +72,7 @@ static ArdiaCoreTab *StartParkedPage(NSString *url, NSString *profileName, NSStr
   if (!profile || ardia_host::WasNavigationDownload(url, profileName)) return nil;
   ArdiaWindowController *keeper = [ArdiaWindowController strayWindowForProfile:profile];
   if (!keeper) return nil;
-  ArdiaCoreTab *tab = RestoreSavedHistory(keeper, profile, key, url);
+  ArdiaCoreTab *tab = RestoreSavedHistory(keeper, profile, key, url, nil);
   keeper.hostChanges++;
   if (!tab) tab = [keeper.coreWindow openTab:url profile:profile foreground:NO];
   keeper.hostChanges--;
@@ -215,7 +215,7 @@ static ArdiaCoreTab *StartParkedPage(NSString *url, NSString *profileName, NSStr
         return [view attach:tab];
     }
     if (standalone) controller = [ArdiaWindowController standaloneWindowForProfile:profile] ?: controller;
-    if (!standalone && [kind isEqualToString:@"clone"] && [view cloneTab:key profile:profile]) return;
+    if (!standalone && !view->_containerId.length && [kind isEqualToString:@"clone"] && [view cloneTab:key profile:profile]) return;
     if (!standalone && [kind isEqualToString:@"restore"] && url.length && !ardia_host::IsPrivateProfile(view->_profile) && controller.coreWindow) {
       view->_life.resumeCreating();
       view->_life.pendingURL = pending;
@@ -229,10 +229,10 @@ static ArdiaCoreTab *StartParkedPage(NSString *url, NSString *profileName, NSStr
                   NSString *state = [result[@"state"] isKindOfClass:NSString.class] ? result[@"state"] : nil;
                   ArdiaCoreTab *tab = nil;
                   now.hostChanges++;
-                  if (state.length) tab = [now.coreWindow restoreTab:state profile:profile foreground:NO];
+                  if (state.length) tab = [now.coreWindow restoreTab:state profile:profile foreground:NO containerId:later->_containerId];
                   if (!tab) {
                     if (later->_life.pendingURL == pending) later->_life.pendingURL = nil;
-                    tab = [now.coreWindow openTab:url profile:profile foreground:NO];
+                    tab = [now.coreWindow openTab:url profile:profile foreground:NO containerId:later->_containerId];
                   }
                   now.hostChanges--;
                   if (tab) [later attach:tab];
@@ -247,10 +247,10 @@ static ArdiaCoreTab *StartParkedPage(NSString *url, NSString *profileName, NSStr
     }
     if (url.length) ArdiaFieldMarkNow(view->_transferKey, @"request");
     ArdiaCoreTab *tab = !standalone && !userInitiated && !ardia_host::IsPrivateProfile(view->_profile)
-                            ? RestoreSavedHistory(controller, profile, view->_transferKey, url)
+                            ? RestoreSavedHistory(controller, profile, view->_transferKey, url, view->_containerId)
                             : nil;
     controller.hostChanges++;
-    if (!tab) tab = [controller.coreWindow openTab:url.length ? url : @"" profile:profile foreground:NO];
+    if (!tab) tab = [controller.coreWindow openTab:url.length ? url : @"" profile:profile foreground:NO containerId:view->_containerId];
     controller.hostChanges--;
     if (!tab) [view waitForWindow];
     if (url.length && tab.loading) ArdiaFieldMarkNow(view->_transferKey, @"start");

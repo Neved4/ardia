@@ -139,6 +139,15 @@ ARDIACORE_EXPORT
 - (void)clearBrowsingData:(NSArray<NSString*>*)types
                     since:(nullable NSDate*)since
                completion:(nullable void (^)(void))completion;
+- (void)clearWebsiteContainer:(NSString*)containerId
+                   completion:(void (^)(BOOL ok))completion;
+- (void)clearWebsiteContainer:(NSString*)containerId
+                       origin:(nullable NSString*)origin
+                   completion:(void (^)(BOOL ok))completion;
+- (void)clearWebsiteContainer:(NSString*)containerId
+                        origin:(nullable NSString*)origin
+                         since:(double)sinceMilliseconds
+                   completion:(void (^)(BOOL ok))completion;
 @end
 
 @interface ArdiaCoreProfile (Icons)
@@ -197,6 +206,10 @@ ARDIACORE_EXPORT
 - (ArdiaCoreTab*)openTab:(NSString*)url
               profile:(ArdiaCoreProfile*)profile
            foreground:(BOOL)foreground;
+- (ArdiaCoreTab*)openTab:(NSString*)url
+              profile:(ArdiaCoreProfile*)profile
+           foreground:(BOOL)foreground
+          containerId:(nullable NSString*)containerId;
 - (nullable ArdiaCoreTab*)openExtensionView:(NSString*)url
                                  profile:(ArdiaCoreProfile*)profile
                                     kind:(NSString*)kind;
@@ -215,6 +228,10 @@ ARDIACORE_EXPORT
 - (nullable ArdiaCoreTab*)restoreTab:(nullable NSString*)state
                           profile:(ArdiaCoreProfile*)profile
                        foreground:(BOOL)foreground;
+- (nullable ArdiaCoreTab*)restoreTab:(nullable NSString*)state
+                          profile:(ArdiaCoreProfile*)profile
+                       foreground:(BOOL)foreground
+                      containerId:(nullable NSString*)containerId;
 - (nullable ArdiaCoreTab*)duplicateTab:(ArdiaCoreTab*)source
                             profile:(ArdiaCoreProfile*)profile
                          foreground:(BOOL)foreground;

@@ -21,6 +21,7 @@ import { historyOf } from "../history/history";
 import { awayFromHome, pinHome, reopensAtPinnedUrl } from "../pins/pinHomes";
 import { notePinnedTabReopenChoice, noteTopAppsKeptRunning } from "../telemetry/tabSleepCounts";
 import type { ConsentToken } from "../telemetry/consentPeriod";
+import { defaultEngine, tabEngine } from "../engines/engines";
 
 export type NewTabOptions = {
   url?: string;
@@ -361,10 +362,11 @@ export function withNewTab(s: BrowserState, windowId: string, o: NewTabOptions =
   const url = o.url ? resolveTyped(s.settings, o.url) : "";
   const opener = o.openerId ? s.tabs[o.openerId] : undefined;
   const containerId = o.snapshot?.containerId ?? (opener?.profileId === profileId ? opener.containerId : undefined);
+  const engine = o.snapshot?.engine ?? (opener?.profileId === profileId ? tabEngine(s, opener.id) : undefined) ?? defaultEngine(s);
   const tab = makeTab(windowId, profileId, url, {
     ...o.snapshot,
     containerId,
-    ...(containerId ? { engine: "webkit" } : {}),
+    ...(containerId ? { engine } : {}),
     pin: o.pinned === false ? null : (o.snapshot?.pin ?? (o.pinned ? TILE_PIN : null)),
   });
   if (tab.page.kind === "loaded" && !o.snapshot) tab.page = loadedPage(navigationTo(url, !o.replaced));

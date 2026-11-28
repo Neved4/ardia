@@ -206,6 +206,8 @@ source_set("core") {
     "//components/content_settings/core/browser",
     "//components/permissions",
     "//components/policy/core/common",
+    "//components/sessions/content",
+    "//components/sessions/core",
     "//net",
     "//pdf:buildflags",
     "//printing/buildflags",

@@ -111,6 +111,10 @@ test("moving a tab between default browsing and containers changes its storage p
   assert.equal(S().tabs[tabId].containerId, personal);
   assert.notEqual(S().tabs[tabId].page.nav.seq, workNavSeq);
 
+  assert.equal(await openPageIn(tabId, "chromium", { containerId: work, checkWork: false }), true);
+  assert.equal(S().tabs[tabId].engine, "chromium");
+  assert.equal(S().tabs[tabId].containerId, work);
+
   assert.equal(await openPageIn(tabId, "chromium", { containerId: null, checkWork: false }), true);
   assert.equal(S().tabs[tabId].engine, "chromium");
   assert.equal(S().tabs[tabId].containerId, undefined);

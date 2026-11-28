@@ -10,6 +10,9 @@ protocol PageEngine {
   func siteSettings(profile: String, origin: String, done: @escaping (Any?, String?) -> Void)
   func setSiteSetting(profile: String, origin: String, type: String, value: String)
   func clearSiteData(profile: String, origin: String, done: @escaping (Any?, String?) -> Void)
+  func clearContainerSiteData(profile: String, origin: String, containerId: String, done: @escaping (Any?, String?) -> Void)
+  func clearContainerStorage(profile: String, containerId: String, since: Double, done: @escaping (Bool) -> Void)
+  func deleteContainerStorage(profile: String, containerId: String, done: @escaping (Bool) -> Void)
   func prepareTransfer(_ key: String)
   func releaseTransfer(_ key: String)
   func clearBrowsingData(profile: String, types: [String], since: Double, done: @escaping (String?) -> Void)
@@ -47,6 +50,20 @@ struct ChromiumPageEngine: PageEngine {
 
   func clearSiteData(profile: String, origin: String, done: @escaping (Any?, String?) -> Void) {
     ArdiaServices.clearSiteData(profile: profile, origin: origin, reply: done)
+  }
+
+  func clearContainerSiteData(profile: String, origin: String, containerId: String, done: @escaping (Any?, String?) -> Void) {
+    ArdiaServices.clearContainerSiteData(profile: profile, containerId: containerId, origin: origin, reply: done)
+  }
+
+  func clearContainerStorage(profile: String, containerId: String, since: Double, done: @escaping (Bool) -> Void) {
+    ArdiaServices.clearContainerStorage(profile: profile, containerId: containerId, since: since) { value, error in
+      done(error == nil && ((value as? [String: Any])?["ok"] as? Bool ?? false))
+    }
+  }
+
+  func deleteContainerStorage(profile: String, containerId: String, done: @escaping (Bool) -> Void) {
+    clearContainerStorage(profile: profile, containerId: containerId, since: 0, done: done)
   }
 
   func prepareTransfer(_ key: String) { ArdiaWebView.prepareTransfer(key) }
@@ -95,6 +112,19 @@ struct WebKitPageEngine: PageEngine {
   func clearSiteData(profile: String, origin: String, done: @escaping (Any?, String?) -> Void) {
     guard let host = URL(string: origin)?.host, !host.isEmpty else { return done(["cookies": false, "storage": false], nil) }
     hub.clearSiteData(profile: profile, host: host) { done($0, nil) }
+  }
+
+  func clearContainerSiteData(profile: String, origin: String, containerId: String, done: @escaping (Any?, String?) -> Void) {
+    guard let host = URL(string: origin)?.host, !host.isEmpty else { return done(["cookies": false, "storage": false], nil) }
+    hub.clearSiteData(profile: profile, host: host, containerId: containerId) { done($0, nil) }
+  }
+
+  func clearContainerStorage(profile: String, containerId: String, since: Double, done: @escaping (Bool) -> Void) {
+    hub.clearContainerData(profile: profile, containerId: containerId, sinceMilliseconds: since, completion: done)
+  }
+
+  func deleteContainerStorage(profile: String, containerId: String, done: @escaping (Bool) -> Void) {
+    hub.deleteContainerData(profile: profile, containerId: containerId, completion: done)
   }
 
   func prepareTransfer(_ key: String) { if WebKitHub.started { hub.transfers.prepare(key) } }
@@ -164,5 +194,27 @@ enum PageEngines {
     }
     chromium.deleteProfileData(profile: profile) { chromiumLeft = $0; finish() }
     webKit.deleteProfileData(profile: profile) { webKitLeft = $0; finish() }
+  }
+
+  static func clearContainerStorage(profile: String, containerId: String, since: Double, done: @escaping (Bool) -> Void) {
+    var chromiumResult: Bool?
+    var webKitResult: Bool?
+    let finish = {
+      guard let chromiumResult, let webKitResult else { return }
+      done(chromiumResult && webKitResult)
+    }
+    chromium.clearContainerStorage(profile: profile, containerId: containerId, since: since) { chromiumResult = $0; finish() }
+    webKit.clearContainerStorage(profile: profile, containerId: containerId, since: since) { webKitResult = $0; finish() }
+  }
+
+  static func deleteContainerStorage(profile: String, containerId: String, done: @escaping (Bool) -> Void) {
+    var chromiumResult: Bool?
+    var webKitResult: Bool?
+    let finish = {
+      guard let chromiumResult, let webKitResult else { return }
+      done(chromiumResult && webKitResult)
+    }
+    chromium.deleteContainerStorage(profile: profile, containerId: containerId) { chromiumResult = $0; finish() }
+    webKit.deleteContainerStorage(profile: profile, containerId: containerId) { webKitResult = $0; finish() }
   }
 }

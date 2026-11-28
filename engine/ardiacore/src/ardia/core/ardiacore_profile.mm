@@ -8,12 +8,14 @@
 #include <vector>
 
 #include "base/files/file_path.h"
+#include "base/functional/bind.h"
 #include "base/functional/callback.h"
 #include "base/location.h"
 #include "base/memory/weak_ptr.h"
 #include "base/no_destructor.h"
 #include "base/scoped_observation.h"
 #include "base/strings/sys_string_conversions.h"
+#include "base/strings/string_util.h"
 #include "base/supports_user_data.h"
 #include "base/task/single_thread_task_runner.h"
 #include "base/time/time.h"
@@ -26,10 +28,15 @@
 #include "components/password_manager/core/common/password_manager_pref_names.h"
 #include "components/prefs/pref_service.h"
 #include "content/public/browser/browsing_data_remover.h"
+#include "content/public/browser/browsing_data_filter_builder.h"
 #include "content/public/browser/spare_render_process_host_manager.h"
+#include "content/public/browser/storage_partition.h"
+#include "content/public/browser/storage_partition_config.h"
 #include "extensions/browser/extension_registry.h"
 #include "extensions/common/extension.h"
 #include "extensions/common/mojom/manifest.mojom-shared.h"
+#include "net/base/registry_controlled_domains/registry_controlled_domain.h"
+#include "url/gurl.h"
 #include "ardia/core/ac_cast_dialog.h"
 #include "ardia/core/ac_navigation_hold.h"
 #import "ardia/core/ardiacore_api_internal.h"
@@ -299,6 +306,72 @@ bool IsProfileDeleting(const Profile* profile) {
   remover->RemoveAndReply(begin, base::Time::Max(), mask,
                           content::BrowsingDataRemover::ORIGIN_TYPE_UNPROTECTED_WEB,
                           new BrowsingDataDone(remover, completion));
+}
+
+- (void)clearWebsiteContainer:(NSString*)containerId
+                   completion:(void (^)(BOOL))completion {
+  [self clearWebsiteContainer:containerId origin:nil since:0 completion:completion];
+}
+
+- (void)clearWebsiteContainer:(NSString*)containerId
+                       origin:(NSString*)origin
+                   completion:(void (^)(BOOL))completion {
+  [self clearWebsiteContainer:containerId origin:origin since:0 completion:completion];
+}
+
+- (void)clearWebsiteContainer:(NSString*)containerId
+                       origin:(NSString*)origin
+                        since:(double)sinceMilliseconds
+                  completion:(void (^)(BOOL))completion {
+  Profile* profile = _profile.get();
+  if (!profile || !containerId.length) {
+    if (completion) completion(NO);
+    return;
+  }
+  const std::string container = base::SysNSStringToUTF8(containerId);
+  const GURL origin_url(origin.length ? base::SysNSStringToUTF8(origin)
+                                      : std::string());
+  if (origin.length &&
+      (!origin_url.is_valid() || !origin_url.SchemeIsHTTPOrHTTPS() ||
+       origin_url.GetOrigin() != origin_url)) {
+    if (completion) completion(NO);
+    return;
+  }
+  const auto config = content::StoragePartitionConfig::Create(
+      profile, "ardia-website-container",
+      base::HexEncode(container.data(), container.size()),
+      profile->IsOffTheRecord());
+  content::StoragePartition* partition = profile->GetStoragePartition(config);
+  std::unique_ptr<content::BrowsingDataFilterBuilder> filter;
+  if (origin.length) {
+    std::string domain =
+        net::registry_controlled_domains::GetDomainAndRegistry(
+            origin_url,
+            net::registry_controlled_domains::INCLUDE_PRIVATE_REGISTRIES);
+    if (domain.empty()) {
+      domain = origin_url.host();
+    }
+    filter = content::BrowsingDataFilterBuilder::Create(
+        content::BrowsingDataFilterBuilder::Mode::kDelete);
+    filter->AddRegisterableDomain(domain);
+  }
+  content::BrowsingDataFilterBuilder* filter_ptr = filter.get();
+  auto cookie_filter = filter ? filter->BuildCookieDeletionFilter() : nullptr;
+  auto clear_done = base::BindOnce(
+      [](std::unique_ptr<content::BrowsingDataFilterBuilder>,
+         void (^done)(BOOL)) {
+        if (done) done(YES);
+      },
+      std::move(filter), [completion copy]);
+  const bool perform_storage_cleanup = !origin.length && sinceMilliseconds <= 0;
+  partition->ClearData(content::StoragePartition::REMOVE_DATA_MASK_ALL,
+                       filter_ptr, {}, std::move(cookie_filter),
+                       perform_storage_cleanup,
+                       sinceMilliseconds > 0
+                           ? base::Time::FromMillisecondsSinceUnixEpoch(
+                                 sinceMilliseconds)
+                           : base::Time::Min(),
+                       base::Time::Max(), std::move(clear_done));
 }
 
 - (NSString*)loadComponentExtension:(NSString*)path {

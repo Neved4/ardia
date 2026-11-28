@@ -8,6 +8,7 @@ import { menuSections } from "../app/menuSections";
 import { menuShortcut } from "../commands/commandShortcuts";
 import { currentTab } from "../browser/current";
 import { engineProfile } from "../browser/model";
+import { tabEngine } from "../engines/engines";
 import type { Tab } from "../browser/types";
 import { useBrowser } from "../browser/store";
 import { openSettings } from "../settings/settingsWindows";
@@ -46,7 +47,7 @@ export async function clearSiteDataAfterConfirm(tab: Pick<Tab, "id" | "windowId"
   if (!confirmed) return null;
   const profile = engineProfile(useBrowser.getState(), tab.profileId);
   const result = tab.containerId
-    ? await clearSiteData(profile, origin, "webkit", tab.containerId).catch(() => null)
+    ? await clearSiteData(profile, origin, tabEngine(useBrowser.getState(), tab.id), tab.containerId).catch(() => null)
     : await clearSiteDataEverywhere(profile, origin).catch(() => null);
   const now = currentTab(tab.id);
   if (now && now.profileId === tab.profileId && siteOrigin(now.url) === origin) void webviews.get(tab.id)?.reload();

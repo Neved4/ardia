@@ -93,10 +93,11 @@ for (const engine of [undefined, "webkit"])
     assert.deepEqual(declined.engineCalls, []);
   });
 
-test("Clear Cookies and Site Data targets the container partition for a container tab", async () => {
-  const container = pendingClear(undefined, true);
+for (const engine of [undefined, "webkit"])
+test(`Clear Cookies and Site Data targets the ${engine ?? "chromium"} container partition for a container tab`, async () => {
+  const container = pendingClear(engine, true);
   assert.equal(await container.finish(true), 0);
-  assert.deepEqual(container.engineCalls, [{ verb: "clearData", profile: container.work, origin: "https://a.com", engine: "webkit", containerId: S().tabs[container.id].containerId }]);
+  assert.deepEqual(container.engineCalls, [{ verb: "clearData", profile: container.work, origin: "https://a.com", engine: engine ?? "chromium", containerId: S().tabs[container.id].containerId }]);
 });
 
 test("a WebKit tab clears the origin its confirmation named in its profile's store, never the page it shows when the clear runs", async () => {

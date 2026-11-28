@@ -4,7 +4,7 @@ import { test } from "node:test";
 const { createContainersSlice } = await import("./containers.ts");
 const native = await import("../../test-native/index.ts");
 const { useBrowser } = await import("../browser/store.ts");
-const { deleteWebsiteContainer, moveTabToWebsiteContainer } = await import("./actions.ts");
+const { deleteWebsiteContainer, moveTabToWebsiteContainer, openWebsiteContainerTab } = await import("./actions.ts");
 const model = await import("../browser/model.ts");
 
 function setup() {
@@ -69,4 +69,22 @@ test("a tab cannot move into a container while its storage is being removed", as
   assert.equal(await moveTabToWebsiteContainer(tabId, id), false);
   assert.equal(await removing, true);
   assert.equal(useBrowser.getState().containers[id], undefined);
+});
+
+test("new container tabs keep the selected engine", () => {
+  useBrowser.getState().hydrate({});
+  const windowId = useBrowser.getState().createWindow();
+  const first = useBrowser.getState().createContainer({ name: "Personal" });
+  const second = useBrowser.getState().createContainer({ name: "Work" });
+  const current = model.activeTabId(useBrowser.getState(), windowId);
+
+  useBrowser.getState().updateTab(current, { engine: "webkit" });
+  const webkitTabId = openWebsiteContainerTab(windowId, first);
+  assert.equal(useBrowser.getState().tabs[webkitTabId].containerId, first);
+  assert.equal(useBrowser.getState().tabs[webkitTabId].engine, "webkit");
+
+  useBrowser.getState().updateTab(webkitTabId, { engine: "chromium" });
+  const chromiumTabId = openWebsiteContainerTab(windowId, second);
+  assert.equal(useBrowser.getState().tabs[chromiumTabId].containerId, second);
+  assert.equal(useBrowser.getState().tabs[chromiumTabId].engine, "chromium");
 });

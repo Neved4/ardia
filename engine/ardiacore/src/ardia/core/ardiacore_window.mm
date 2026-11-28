@@ -10,6 +10,7 @@
 #include "base/auto_reset.h"
 #include "base/base64.h"
 #include "base/pickle.h"
+#include "base/strings/string_util.h"
 #include "base/strings/sys_string_conversions.h"
 #include "base/time/time.h"
 #include "chrome/browser/profiles/profile.h"
@@ -27,6 +28,10 @@
 #import "components/remote_cocoa/app_shim/native_widget_mac_frameless_nswindow.h"
 #include "components/sessions/core/serialized_navigation_entry.h"
 #include "components/sessions/core/serialized_user_agent_override.h"
+#include "components/sessions/content/content_serialized_navigation_builder.h"
+#include "content/public/browser/navigation_controller.h"
+#include "content/public/browser/site_instance.h"
+#include "content/public/browser/storage_partition_config.h"
 #include "content/public/browser/web_contents.h"
 #include "ui/base/window_open_disposition.h"
 #include "ui/gfx/mac/coordinate_conversion.h"
@@ -39,6 +44,19 @@
 @interface BridgedContentView (ArdiaEmbedded)
 - (NSView*)ardiaEmbeddedSubview;
 @end
+
+namespace {
+
+content::StoragePartitionConfig WebsiteContainerPartition(Profile* profile, NSString* containerId) {
+  const std::string container = base::SysNSStringToUTF8(containerId);
+  return content::StoragePartitionConfig::Create(profile, "ardia-website-container", base::HexEncode(container.data(), container.size()), profile->IsOffTheRecord());
+}
+
+GURL WebsiteContainerSiteSeed(const GURL& target) {
+  return target.SchemeIsHTTPOrHTTPS() ? target : GURL("https://example.com/");
+}
+
+}
 
 @implementation ArdiaCoreWindow {
   std::unique_ptr<ardiacore::WindowHost> _host;
@@ -84,13 +102,26 @@
 - (ArdiaCoreTab*)openTab:(NSString*)url
               profile:(ArdiaCoreProfile*)profile
            foreground:(BOOL)foreground {
+  return [self openTab:url profile:profile foreground:foreground containerId:nil];
+}
+
+- (ArdiaCoreTab*)openTab:(NSString*)url
+              profile:(ArdiaCoreProfile*)profile
+           foreground:(BOOL)foreground
+          containerId:(NSString*)containerId {
   Browser* browser = _host->BrowserFor(profile.chromeProfile);
   if (!browser) {
     return nil;
   }
   const bool ahead = !url.length;
-  NavigateParams params(browser, GURL(ahead ? "about:blank" : base::SysNSStringToUTF8(url)),
-                        ui::PAGE_TRANSITION_TYPED);
+  const GURL target(ahead ? "about:blank" : base::SysNSStringToUTF8(url));
+  NavigateParams params(browser, target, ui::PAGE_TRANSITION_TYPED);
+  if (containerId.length) {
+    const auto partition = WebsiteContainerPartition(profile.chromeProfile, containerId);
+    auto site_instance = content::SiteInstance::CreateForFixedStoragePartition(profile.chromeProfile, WebsiteContainerSiteSeed(target), partition);
+    content::WebContents::CreateParams create_params(profile.chromeProfile, std::move(site_instance));
+    params.contents_to_insert = content::WebContents::Create(create_params);
+  }
   params.disposition = foreground ? WindowOpenDisposition::kNewForegroundTab
                                   : WindowOpenDisposition::kNewBackgroundTab;
   params.window_action = NavigateParams::WindowAction::kNoAction;
@@ -300,6 +331,13 @@
 - (ArdiaCoreTab*)restoreTab:(NSString*)state
                  profile:(ArdiaCoreProfile*)profile
               foreground:(BOOL)foreground {
+  return [self restoreTab:state profile:profile foreground:foreground containerId:nil];
+}
+
+- (ArdiaCoreTab*)restoreTab:(NSString*)state
+                 profile:(ArdiaCoreProfile*)profile
+              foreground:(BOOL)foreground
+             containerId:(NSString*)containerId {
   if (ardiacore::IsNotifyingTabStrip()) {
     return nil;
   }
@@ -329,6 +367,17 @@
       {foreground ? WindowOpenDisposition::kNewForegroundTab
                   : WindowOpenDisposition::kNewBackgroundTab,
        nullptr});
+  if (containerId.length) {
+    const auto partition = WebsiteContainerPartition(profile.chromeProfile, containerId);
+    auto site_instance = content::SiteInstance::CreateForFixedStoragePartition(profile.chromeProfile, WebsiteContainerSiteSeed(navigations[selected].virtual_url()), partition);
+    content::WebContents::CreateParams create_params(profile.chromeProfile, std::move(site_instance));
+    std::unique_ptr<content::WebContents> restored = content::WebContents::Create(create_params);
+    auto entries = sessions::ContentSerializedNavigationBuilder::ToNavigationEntries(navigations, profile.chromeProfile);
+    restored->GetController().Restore(selected, content::RestoreType::kRestored, &entries);
+    content::WebContents* contents = restored.get();
+    browser->GetTabStripModel()->InsertWebContentsAt(browser->GetTabStripModel()->count(), std::move(restored), foreground ? AddTabTypes::ADD_ACTIVE : AddTabTypes::ADD_NONE);
+    return ardiacore::TabBridge::GetOrCreate(contents)->tab();
+  }
   content::WebContents* contents = chrome::AddRestoredTab(
       browser, navigations, browser->GetTabStripModel()->count(), selected,
       std::string(), std::nullopt, foreground,

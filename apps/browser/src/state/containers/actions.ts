@@ -1,10 +1,10 @@
 import { call } from "../../platform/engine";
 import { useBrowser } from "../browser/store";
-import { engineProfile } from "../browser/model";
+import { activeTabId, engineProfile } from "../browser/model";
 import type { WebsiteContainer } from "../browser/types";
 import { canDeleteContainer } from "./containers";
 import { openPageIn } from "../engines/actions";
-import { chosenEngine } from "../engines/engines";
+import { chosenEngine, defaultEngine, tabEngine } from "../engines/engines";
 
 const deleting = new Set<string>();
 
@@ -15,14 +15,18 @@ export function createWebsiteContainer(options?: Partial<Pick<WebsiteContainer, 
 export function openWebsiteContainerTab(windowId: string, containerId: string, url?: string) {
   const s = useBrowser.getState();
   if (!s.containers[containerId] || deleting.has(containerId)) return "";
-  return s.newTab(windowId, { url, snapshot: { containerId, engine: "webkit" } });
+  const window = s.windows[windowId];
+  const activeId = activeTabId(s, windowId);
+  const active = activeId ? s.tabs[activeId] : undefined;
+  const engine = chosenEngine(s, url) ?? (active && active.profileId === window?.profileId ? tabEngine(s, active.id) : undefined) ?? defaultEngine(s);
+  return s.newTab(windowId, { url, snapshot: { containerId, engine } });
 }
 
 export function moveTabToWebsiteContainer(tabId: string, containerId: string | null) {
-  const tab = useBrowser.getState().tabs[tabId];
+  const s = useBrowser.getState();
+  const tab = s.tabs[tabId];
   if (!tab || (containerId && (!useBrowser.getState().containers[containerId] || deleting.has(containerId)))) return Promise.resolve(false);
-  if (containerId) return openPageIn(tabId, "webkit", { containerId });
-  return openPageIn(tabId, chosenEngine(useBrowser.getState(), tab.url) ?? "chromium", { containerId: null });
+  return openPageIn(tabId, tabEngine(s, tabId), { containerId });
 }
 
 export function updateWebsiteContainer(id: string, patch: Partial<Pick<WebsiteContainer, "name" | "color" | "icon">>) {

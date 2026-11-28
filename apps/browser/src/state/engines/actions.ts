@@ -161,7 +161,6 @@ async function movePage(tabId: string, engine: PageEngine, options: MoveOptions)
   const t = store().tabs[tabId];
   if (!t) return false;
   const containerId = options.containerId === undefined ? t.containerId : options.containerId || undefined;
-  if (containerId && engine !== "webkit") return false;
   const url = t.url || navigationOf(t)?.url || "";
   const forced = modeEngineFor(store(), t, url);
   if (forced && forced !== engine) return false;

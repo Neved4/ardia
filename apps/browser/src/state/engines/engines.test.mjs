@@ -68,13 +68,18 @@ test("a tab keeps its engine, else follows its adoption, its opener, then rules"
   assert.equal(tabEngine(s, "gone"), "chromium");
 });
 
-test("container tabs always use WebKit, regardless of profile and website engine rules", () => {
-  const s = state([tab("container", { containerId: "work", engine: "webkit", url: "https://example.com/" })], {
+test("container tabs retain the engine assigned to the tab", () => {
+  const s = state([
+    tab("webkit-container", { containerId: "work", engine: "webkit", url: "https://example.com/" }),
+    tab("chromium-container", { containerId: "work", engine: "chromium", url: "https://example.com/" }),
+  ], {
     pageEngine: "chromium",
     websiteEngines: { "https://example.com": "chromium" },
   });
-  assert.equal(tabEngine(s, "container"), "webkit");
-  assert.equal(typedNavigationEngine(s, s.tabs.container, "https://other.example/"), "webkit");
+  assert.equal(tabEngine(s, "webkit-container"), "webkit");
+  assert.equal(typedNavigationEngine(s, s.tabs["webkit-container"], "https://other.example/"), "webkit");
+  assert.equal(tabEngine(s, "chromium-container"), "chromium");
+  assert.equal(typedNavigationEngine(s, s.tabs["chromium-container"], "https://other.example/"), "chromium");
 });
 
 test("typing an address follows a rule, else keeps the page's engine", () => {

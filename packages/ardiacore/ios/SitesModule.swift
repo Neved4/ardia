@@ -39,10 +39,7 @@ public class SitesModule: Module {
     clearData: { args, reply in
       let origin = try args.text("origin")
       if let containerId = try args.optionalText("containerId"), !containerId.isEmpty {
-        guard let host = URL(string: origin)?.host, !host.isEmpty else {
-          return reply.ok(["cookies": false, "storage": false])
-        }
-        WebKitHub.shared.clearSiteData(profile: args.profile, host: host, containerId: containerId) { reply.ok($0) }
+        try engine(args).clearContainerSiteData(profile: args.profile, origin: origin, containerId: containerId) { reply.service($0, $1) }
       } else {
         try engine(args).clearSiteData(profile: args.profile, origin: origin) { reply.service($0, $1) }
       }

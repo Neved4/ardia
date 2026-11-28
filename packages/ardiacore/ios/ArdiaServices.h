@@ -87,6 +87,10 @@ typedef void (^ArdiaServiceReply)(id _Nullable value, NSString *_Nullable error)
 
 + (void)clearBrowsingData:(NSString *)profile types:(NSArray<NSString *> *)types since:(double)sinceMs completion:(void (^)(NSString * _Nullable))completion
     NS_SWIFT_NAME(clearBrowsingData(profile:types:since:completion:));
++ (void)clearContainerStorage:(NSString *)profile containerId:(NSString *)containerId since:(double)sinceMs reply:(ArdiaServiceReply)reply
+    NS_SWIFT_NAME(clearContainerStorage(profile:containerId:since:reply:));
++ (void)clearContainerSiteData:(NSString *)profile containerId:(NSString *)containerId origin:(NSString *)origin reply:(ArdiaServiceReply)reply
+    NS_SWIFT_NAME(clearContainerSiteData(profile:containerId:origin:reply:));
 
 @end
 

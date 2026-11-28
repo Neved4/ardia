@@ -472,4 +472,23 @@ NSMutableDictionary<NSString *, NSString *> *DownloadProfiles() {
   }];
 }
 
++ (void)clearContainerStorage:(NSString *)profile containerId:(NSString *)containerId since:(double)sinceMs reply:(ArdiaServiceReply)reply {
+  ardia_host::WithProfile(profile, ^(ArdiaCoreProfile *p) {
+    if (!p) return reply(nil, @"the profile could not be loaded");
+    [p clearWebsiteContainer:containerId origin:nil since:sinceMs completion:^(BOOL ok) {
+      reply(@{@"ok" : @(ok)}, nil);
+    }];
+  });
+}
+
++ (void)clearContainerSiteData:(NSString *)profile containerId:(NSString *)containerId origin:(NSString *)origin reply:(ArdiaServiceReply)reply {
+  ardia_host::WithProfile(profile, ^(ArdiaCoreProfile *p) {
+    if (!p) return reply(nil, @"the profile could not be loaded");
+    [p clearWebsiteContainer:containerId origin:origin completion:^(BOOL ok) {
+      if (!ok) return reply(nil, @"container site data could not be cleared");
+      reply(@{@"cookies" : @NO, @"storage" : @YES}, nil);
+    }];
+  });
+}
+
 @end
