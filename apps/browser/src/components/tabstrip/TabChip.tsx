@@ -229,7 +229,7 @@ export const TabChip = memo(function TabChip({ tabId, width, drawn, tuck, dragge
                   color={active ? ink : undefined}
                   containerEngine={container && containerTabIndicator === "engine" ? pageEngine : undefined}
                   containerEngineColor={container ? PROFILE_COLORS[container.color].swatch : undefined}
-                  containerDot={container && showContainerDot ? { color: PROFILE_COLORS[container.color].swatch, cutoutColor: active ? (onBand && palette.background ? palette.background : theme.card) : theme.windowTint[0] } : undefined}
+                  containerDot={container && showContainerDot ? { color: PROFILE_COLORS[container.color].swatch } : undefined}
                 />
                 <TabBadges tabId={tab.id} />
                 {compact && (playing || mute) ? <AudioBadge mute={mute} color={theme.textTab} plate={theme.windowTint[0]} /> : null}

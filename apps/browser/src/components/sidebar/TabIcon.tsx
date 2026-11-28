@@ -13,7 +13,7 @@ import { Favicon } from "../favicon/Favicon";
 import { engineMarkLayout } from "./engineMarkLayout";
 import { ContainerTabIndicator } from "../containers/ContainerTabIndicator";
 
-type ContainerDot = { color: string; cutoutColor: string };
+type ContainerDot = { color: string };
 
 export const TabIcon = memo(function TabIcon({
   tabId,

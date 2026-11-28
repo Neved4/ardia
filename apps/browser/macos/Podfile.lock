@@ -2314,6 +2314,8 @@ PODS:
     - React-perflogger (= 0.81.9)
     - React-utils (= 0.81.9)
     - SocketRocket
+  - RNSVG (15.16.0):
+    - React-Core
   - SocketRocket (0.7.1)
   - Sparkle (2.9.6)
   - Yoga (0.0.0)
@@ -2402,6 +2404,7 @@ DEPENDENCIES:
   - ReactAppDependencyProvider (from `build/generated/ios`)
   - ReactCodegen (from `build/generated/ios`)
   - ReactCommon/turbomodule/core (from `../../../node_modules/react-native-macos/ReactCommon`)
+  - RNSVG (from `../../../node_modules/react-native-svg`)
   - SocketRocket (~> 0.7.1)
   - Yoga (from `../../../node_modules/react-native-macos/ReactCommon/yoga`)
 
@@ -2576,6 +2579,8 @@ EXTERNAL SOURCES:
     :path: build/generated/ios
   ReactCommon:
     :path: "../../../node_modules/react-native-macos/ReactCommon"
+  RNSVG:
+    :path: "../../../node_modules/react-native-svg"
   Yoga:
     :path: "../../../node_modules/react-native-macos/ReactCommon/yoga"
 
@@ -2662,6 +2667,7 @@ SPEC CHECKSUMS:
   ReactAppDependencyProvider: db0eebc7a9e85c8976d5ea10706d790753a53889
   ReactCodegen: e0a9b01eae258647e0146514d137b1e304aec015
   ReactCommon: bc273d1cfc32a36ea662e81293e0961de8c21c77
+  RNSVG: 42ba148cd5b52d420c92df3bcbb78b20e04e1065
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
   Sparkle: b8c9cf4ced217ffc708a1ca5f988a7ba877658db
   Yoga: a88f30ac6f89fded00f9840e7d043315e5ab4fe0

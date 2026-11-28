@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { test } from "node:test";
 const { DEFAULT_SETTINGS, SETTING_SPECS, parseSettings } = await import("./settings.ts");
 const { CONTAINER_TAB_INDICATORS, containerTabIndicatorKind } = await import("./containerTabAppearance.ts");
@@ -22,4 +23,11 @@ test("container dots use the existing engine mark position", () => {
     const { box, offset } = engineMarkLayout(size);
     assert.ok(Math.abs((-right - diameter / 2) - (offset - box / 2)) < 1e-9);
   }
+});
+
+test("container dots cut out with transparency instead of painting a tab color", () => {
+  const source = readFileSync(new URL("../../components/containers/ContainerTabIndicator.tsx", import.meta.url), "utf8");
+  assert.match(source, /<Mask id=\{maskId\}/);
+  assert.match(source, /fill="black"/);
+  assert.doesNotMatch(source, /cutoutColor|backgroundColor/);
 });

@@ -139,7 +139,7 @@ export const TabRow = memo(function TabRow({
                       </View>
                     ) : (
                       <View>
-                        <RowTabIcon tabId={shown.id} url={shown.url} favicon={shown.favicon} icon={shown.customIcon} profileId={shown.profileId} marks={iconMarks & ICON_MARKS} sleeping={!!(iconMarks & SLEEPING)} compact={quiet} containerEngine={container && containerTabIndicator === "engine" ? pageEngine : undefined} containerEngineColor={container ? PROFILE_COLORS[container.color].swatch : undefined} containerDot={container && showContainerDot ? { color: PROFILE_COLORS[container.color].swatch, cutoutColor: fill !== ink.clear ? fill : theme.windowTint[0] } : undefined} />
+                        <RowTabIcon tabId={shown.id} url={shown.url} favicon={shown.favicon} icon={shown.customIcon} profileId={shown.profileId} marks={iconMarks & ICON_MARKS} sleeping={!!(iconMarks & SLEEPING)} compact={quiet} containerEngine={container && containerTabIndicator === "engine" ? pageEngine : undefined} containerEngineColor={container ? PROFILE_COLORS[container.color].swatch : undefined} containerDot={container && showContainerDot ? { color: PROFILE_COLORS[container.color].swatch } : undefined} />
                         {badged ? <TabBadges tabId={shown.id} /> : null}
                       </View>
                     )}
@@ -147,7 +147,7 @@ export const TabRow = memo(function TabRow({
                 </Pressable>
               ) : (
                 <>
-                  <RowTabIcon tabId={shown.id} url={shown.url} favicon={shown.favicon} icon={shown.customIcon} profileId={shown.profileId} marks={iconMarks & ICON_MARKS} sleeping={!!(iconMarks & SLEEPING)} compact={quiet} containerEngine={container && containerTabIndicator === "engine" ? pageEngine : undefined} containerEngineColor={container ? PROFILE_COLORS[container.color].swatch : undefined} containerDot={container && showContainerDot ? { color: PROFILE_COLORS[container.color].swatch, cutoutColor: fill !== ink.clear ? fill : theme.windowTint[0] } : undefined} />
+                  <RowTabIcon tabId={shown.id} url={shown.url} favicon={shown.favicon} icon={shown.customIcon} profileId={shown.profileId} marks={iconMarks & ICON_MARKS} sleeping={!!(iconMarks & SLEEPING)} compact={quiet} containerEngine={container && containerTabIndicator === "engine" ? pageEngine : undefined} containerEngineColor={container ? PROFILE_COLORS[container.color].swatch : undefined} containerDot={container && showContainerDot ? { color: PROFILE_COLORS[container.color].swatch } : undefined} />
                   {badged ? <TabBadges tabId={shown.id} /> : null}
                 </>
               )}
