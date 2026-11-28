@@ -3,7 +3,7 @@ import { Animated, Pressable, TextInput, View, type GestureResponderEvent, type 
 import { toggleMute } from "../../state/browser/actions";
 import { caretColorOnRow, hex, layout, PROFILE_COLORS, useTheme } from "../ui/theme";
 import { arcSelectedFill } from "../ui/tokens";
-import { useIsActiveTab, usePageProfileId, useTab, useWindow, useWindowId } from "../../state/browser/hooks";
+import { useIsActiveTab, usePageProfileId, useSettings, useTab, useWindow, useWindowId } from "../../state/browser/hooks";
 import { returnToPinnedUrl } from "../../state/pins/actions";
 import { useSplitRowPanes } from "../../state/sidebar/hooks";
 import { useTabHasBadges } from "../../state/media/tabBadges";
@@ -45,6 +45,7 @@ import type { RowSection } from "./dragModel";
 import type { SplitDropSide } from "../../state/drag/drops";
 import { buttonMotion, usePressScaleMotion } from "../ui/motion";
 import { useWebsiteContainer } from "../../state/containers/hooks";
+import { ContainerTabSymbol } from "../containers/ContainerTabSymbol";
 
 export const TabRowItem = memo(function TabRowItem({
   tabId,
@@ -79,6 +80,7 @@ export const TabRow = memo(function TabRow({
   const windowId = useWindowId();
   const { tab, flags } = useRowState(tabId, windowId);
   const container = useWebsiteContainer(tab?.containerId);
+  const showContainerSymbols = useSettings((settings) => settings.showContainerSymbolsInTabs);
   const active = !!(flags & ACTIVE);
   const selected = !!(flags & SELECTED);
   const playingAudio = !!(flags & PLAYING);
@@ -135,7 +137,10 @@ export const TabRow = memo(function TabRow({
                       </View>
                     ) : (
                       <View>
-                        <RowTabIcon tabId={shown.id} url={shown.url} favicon={shown.favicon} icon={shown.customIcon} profileId={shown.profileId} marks={iconMarks & ICON_MARKS} sleeping={!!(iconMarks & SLEEPING)} compact={quiet} />
+                        <View style={{ position: "relative", alignSelf: "flex-start" }}>
+                          <RowTabIcon tabId={shown.id} url={shown.url} favicon={shown.favicon} icon={shown.customIcon} profileId={shown.profileId} marks={iconMarks & ICON_MARKS} sleeping={!!(iconMarks & SLEEPING)} compact={quiet} />
+                          {container ? <ContainerTabSymbol container={container} /> : null}
+                        </View>
                         {badged ? <TabBadges tabId={shown.id} /> : null}
                       </View>
                     )}
@@ -143,13 +148,16 @@ export const TabRow = memo(function TabRow({
                 </Pressable>
               ) : (
                 <>
-                  <RowTabIcon tabId={shown.id} url={shown.url} favicon={shown.favicon} icon={shown.customIcon} profileId={shown.profileId} marks={iconMarks & ICON_MARKS} sleeping={!!(iconMarks & SLEEPING)} compact={quiet} />
+                  <View style={{ position: "relative", alignSelf: "flex-start" }}>
+                    <RowTabIcon tabId={shown.id} url={shown.url} favicon={shown.favicon} icon={shown.customIcon} profileId={shown.profileId} marks={iconMarks & ICON_MARKS} sleeping={!!(iconMarks & SLEEPING)} compact={quiet} />
+                    {container ? <ContainerTabSymbol container={container} /> : null}
+                  </View>
                   {badged ? <TabBadges tabId={shown.id} /> : null}
                 </>
               )}
             </View>
     );
-  }, [tab, badged, iconMarks, quiet, resettable, resetting, textOnly, backToPinHint, resetInk, backToPin.hoverProps]);
+  }, [tab, container, badged, iconMarks, quiet, resettable, resetting, textOnly, backToPinHint, resetInk, backToPin.hoverProps]);
   if (!tab) return null;
   const title = resetting ? "Back to Pinned URL" : tab.customTitle ? tabTitle(tab) : titleWithoutUnread(tabTitle(tab), unread);
   const away = resettable && !resetting ? rowAwayTitle(tab) : null;
@@ -168,7 +176,7 @@ export const TabRow = memo(function TabRow({
         <>
           <RowHoverFill cell={cell} pressed={pressed} color={pressed ? pressedFill : hoverFill} radius={radius.chrome} />
           {surface}
-          {container ? <View pointerEvents="none" style={{ position: "absolute", right: 7, top: 6, bottom: 6, width: 3, borderRadius: 2, backgroundColor: PROFILE_COLORS[container.color].swatch }} /> : null}
+          {container && !showContainerSymbols ? <View pointerEvents="none" style={{ position: "absolute", right: 7, top: 6, bottom: 6, width: 3, borderRadius: 2, backgroundColor: PROFILE_COLORS[container.color].swatch }} /> : null}
           {previewFade(preview, <>
             {iconSlot}
             {pip && (
