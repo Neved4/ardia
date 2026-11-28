@@ -12,5 +12,5 @@ test("tab indicator has one synced choice and defaults to Dot", () => {
 });
 
 test("each single-choice mode selects exactly its matching tab mark", () => {
-  assert.deepEqual(CONTAINER_TAB_INDICATORS.map(containerTabIndicatorKind), ["dot", null]);
+  assert.deepEqual(CONTAINER_TAB_INDICATORS.map(containerTabIndicatorKind), ["dot", "line", "engine"]);
 });

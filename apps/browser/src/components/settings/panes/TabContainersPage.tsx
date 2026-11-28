@@ -136,12 +136,13 @@ export function TabContainersPage() {
       </Group>
       <SectionHeader title="In tabs" description="Choose how containers appear on their tabs." />
       <Group>
-        <Row title="Tab indicator" description="Show a color dot or line for each container.">
+        <Row title="Tab indicator" description="Choose how containers appear on their tabs.">
           <PopUp
             value={containerTabIndicator}
             options={[
               { value: "dot", title: "Dot" },
               { value: "line", title: "Line" },
+              { value: "engine", title: "Engine" },
             ]}
             onChange={(containerTabIndicator) => updateSettings({ containerTabIndicator })}
             accessibilityLabel="Tab indicator"

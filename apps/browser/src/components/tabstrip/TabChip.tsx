@@ -45,6 +45,7 @@ import { buttonMotion, usePressScaleMotion } from "../ui/motion";
 import { TOGGLE_MS, toggleEase } from "./stripToggle";
 import { reduceMotion } from "../ui/reduceMotion";
 import { useWebsiteContainer } from "../../state/containers/hooks";
+import { usePageEngine } from "../../state/engines/hooks";
 import { ContainerTabIndicator } from "../containers/ContainerTabIndicator";
 
 export const DraggableChip = memo(function DraggableChip({
@@ -167,7 +168,9 @@ export const TabChip = memo(function TabChip({ tabId, width, drawn, tuck, dragge
   const windowId = useWindowId();
   const tab = useTab(tabId);
   const container = useWebsiteContainer(tab?.containerId);
-  const showContainerDot = useSettings((s) => s.containerTabIndicator === "dot");
+  const containerTabIndicator = useSettings((s) => s.containerTabIndicator);
+  const showContainerDot = containerTabIndicator === "dot";
+  const pageEngine = usePageEngine(tabId);
   const active = useIsActiveTab(tabId);
   const theme = active ? surfaceTheme(onTint) : onTint;
   const floating = useContext(FloatingStrip);
@@ -192,7 +195,7 @@ export const TabChip = memo(function TabChip({ tabId, width, drawn, tuck, dragge
     <ThemeOverride theme={theme}>
       <Animated.View {...chipHover.hoverProps} style={{ width: drawn ?? width, height: TOP_STRIP_HEIGHT }}>
         {active && <SelectedTab width={drawn ?? width} band={band} opaque={dragged} />}
-        {container && !showContainerDot ? <View pointerEvents="none" style={{ position: "absolute", left: 8, right: 8, top: TAB_TOP + 4, height: 2, borderRadius: 1, backgroundColor: PROFILE_COLORS[container.color].swatch }} /> : null}
+        {container && containerTabIndicator === "line" ? <View pointerEvents="none" style={{ position: "absolute", left: 8, right: 8, top: TAB_TOP + 4, height: 2, borderRadius: 1, backgroundColor: PROFILE_COLORS[container.color].swatch }} /> : null}
         {dragged && !active && (
           <View pointerEvents="none" style={[{ position: "absolute", left: 0, width, top: ITEM_TOP, height: ITEM_HEIGHT, backgroundColor: theme.windowTint[0] }, continuousCorners(tabRadius())]} />
         )}
@@ -220,7 +223,7 @@ export const TabChip = memo(function TabChip({ tabId, width, drawn, tuck, dragge
             >
               <View pointerEvents="none">
                 <View style={{ position: "relative", alignSelf: "flex-start" }}>
-                  <TabIcon tabId={tab.id} url={tab.url} favicon={tab.favicon} icon={tab.customIcon} color={active ? ink : undefined} />
+                  <TabIcon tabId={tab.id} url={tab.url} favicon={tab.favicon} icon={tab.customIcon} color={active ? ink : undefined} containerEngine={container && containerTabIndicator === "engine" ? pageEngine : undefined} containerEngineColor={container ? PROFILE_COLORS[container.color].swatch : undefined} />
                   {container && showContainerDot ? <ContainerTabIndicator container={container} cutoutColor={active ? (onBand && palette.background ? palette.background : theme.card) : theme.windowTint[0]} /> : null}
                 </View>
                 <TabBadges tabId={tab.id} />
