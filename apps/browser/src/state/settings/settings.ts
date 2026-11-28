@@ -70,7 +70,7 @@ export const SETTING_SPECS = {
   newTabPosition: oneOf(["top", "bottom", "nextToCurrent"], "bottom", SYNCED),
   newTabButtonPosition: oneOf(["top", "bottom"], "bottom", SYNCED),
   showTabMenuButton: flag(true, SYNCED),
-  showContainerSymbolsInTabs: flag(false, SYNCED),
+  containerTabIndicator: oneOf(["dot", "line"], "dot", SYNCED),
   appLinksFirst: flag(false, SYNCED),
   newTabOpens: oneOf(["page", "commandBar"], "page", SYNCED),
   newTabUrl: text("", SYNCED),

@@ -45,7 +45,7 @@ import type { RowSection } from "./dragModel";
 import type { SplitDropSide } from "../../state/drag/drops";
 import { buttonMotion, usePressScaleMotion } from "../ui/motion";
 import { useWebsiteContainer } from "../../state/containers/hooks";
-import { ContainerTabSymbol } from "../containers/ContainerTabSymbol";
+import { ContainerTabIndicator } from "../containers/ContainerTabIndicator";
 
 export const TabRowItem = memo(function TabRowItem({
   tabId,
@@ -80,7 +80,7 @@ export const TabRow = memo(function TabRow({
   const windowId = useWindowId();
   const { tab, flags } = useRowState(tabId, windowId);
   const container = useWebsiteContainer(tab?.containerId);
-  const showContainerSymbols = useSettings((settings) => settings.showContainerSymbolsInTabs);
+  const showContainerDot = useSettings((settings) => settings.containerTabIndicator === "dot");
   const active = !!(flags & ACTIVE);
   const selected = !!(flags & SELECTED);
   const playingAudio = !!(flags & PLAYING);
@@ -139,7 +139,7 @@ export const TabRow = memo(function TabRow({
                       <View>
                         <View style={{ position: "relative", alignSelf: "flex-start" }}>
                           <RowTabIcon tabId={shown.id} url={shown.url} favicon={shown.favicon} icon={shown.customIcon} profileId={shown.profileId} marks={iconMarks & ICON_MARKS} sleeping={!!(iconMarks & SLEEPING)} compact={quiet} />
-                          {container ? <ContainerTabSymbol container={container} /> : null}
+                          {container && showContainerDot ? <ContainerTabIndicator container={container} cutoutColor={fill !== ink.clear ? fill : theme.windowTint[0]} /> : null}
                         </View>
                         {badged ? <TabBadges tabId={shown.id} /> : null}
                       </View>
@@ -150,7 +150,7 @@ export const TabRow = memo(function TabRow({
                 <>
                   <View style={{ position: "relative", alignSelf: "flex-start" }}>
                     <RowTabIcon tabId={shown.id} url={shown.url} favicon={shown.favicon} icon={shown.customIcon} profileId={shown.profileId} marks={iconMarks & ICON_MARKS} sleeping={!!(iconMarks & SLEEPING)} compact={quiet} />
-                    {container ? <ContainerTabSymbol container={container} /> : null}
+                    {container && showContainerDot ? <ContainerTabIndicator container={container} cutoutColor={fill !== ink.clear ? fill : theme.windowTint[0]} /> : null}
                   </View>
                   {badged ? <TabBadges tabId={shown.id} /> : null}
                 </>
@@ -176,7 +176,7 @@ export const TabRow = memo(function TabRow({
         <>
           <RowHoverFill cell={cell} pressed={pressed} color={pressed ? pressedFill : hoverFill} radius={radius.chrome} />
           {surface}
-          {container && !showContainerSymbols ? <View pointerEvents="none" style={{ position: "absolute", right: 7, top: 6, bottom: 6, width: 3, borderRadius: 2, backgroundColor: PROFILE_COLORS[container.color].swatch }} /> : null}
+          {container && !showContainerDot ? <View pointerEvents="none" style={{ position: "absolute", right: 7, top: 8, bottom: 8, width: 3, borderRadius: 2, backgroundColor: PROFILE_COLORS[container.color].swatch }} /> : null}
           {previewFade(preview, <>
             {iconSlot}
             {pip && (

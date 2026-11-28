@@ -9,7 +9,7 @@ import { canDeleteContainer } from "../../../state/containers/containers";
 import { createWebsiteContainer, deleteWebsiteContainer, updateWebsiteContainer } from "../../../state/containers/actions";
 import { SETTINGS_WINDOW_ID } from "../../../state/settings/settingsWindows";
 import { PROFILE_COLORS } from "../../ui/theme";
-import { Button, DialogActions, DialogTitle, Sheet, Symbol, Text, TextField, Toggle, space } from "../../ui";
+import { Button, DialogActions, DialogTitle, PopUp, Sheet, Symbol, Text, TextField, space } from "../../ui";
 import { Group, Row, SectionHeader, FormField } from "../Form";
 import { ProfileSubPage } from "./ProfileSubPage";
 import { closeSettingsSheet, showSettingsSheet } from "../../../state/settings/sheet";
@@ -21,7 +21,7 @@ import { useSettings } from "../../../state/browser/hooks";
 import { updateSettings } from "../../../state/settings/actions";
 
 export function TabContainersPage() {
-  const showContainerSymbols = useSettings((settings) => settings.showContainerSymbolsInTabs);
+  const containerTabIndicator = useSettings((settings) => settings.containerTabIndicator);
   const [removal, setRemoval] = useState<{ containerId: string; phase: "confirming" | "removing" } | null>(null);
   const removalInProgress = useRef(false);
   const editButtons = useRef(new Map<string, View>());
@@ -134,10 +134,19 @@ export function TabContainersPage() {
           })
         )}
       </Group>
-      <SectionHeader title="In tabs" description="Show each container’s symbol on its tabs instead of the color marker." />
+      <SectionHeader title="In tabs" description="Choose how containers appear on their tabs." />
       <Group>
-        <Row title="Show container symbols" description="Overlay each container’s symbol on the favicon in its color.">
-          <Toggle value={showContainerSymbols} accessibilityLabel="Show container symbols" onChange={(value) => updateSettings({ showContainerSymbolsInTabs: value })} />
+        <Row title="Tab indicator" description="Show a color dot or line for each container.">
+          <PopUp
+            value={containerTabIndicator}
+            options={[
+              { value: "dot", title: "Dot" },
+              { value: "line", title: "Line" },
+            ]}
+            onChange={(containerTabIndicator) => updateSettings({ containerTabIndicator })}
+            accessibilityLabel="Tab indicator"
+            minWidth={190}
+          />
         </Row>
       </Group>
     </ProfileSubPage>

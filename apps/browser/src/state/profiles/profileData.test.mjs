@@ -21,6 +21,7 @@ test("clearing cookies and site data clears every container for the selected pro
   useBrowser.getState().hydrate({});
   useBrowser.getState().createContainer({ name: "Work" });
   useBrowser.getState().createContainer({ name: "Personal" });
+  const containerIds = Object.keys(useBrowser.getState().containers);
   engineCalls.length = 0;
   containerStorageCalls.length = 0;
 
@@ -28,12 +29,10 @@ test("clearing cookies and site data clears every container for the selected pro
 
   assert.deepEqual(engineCalls, [
     { domain: "profiles", verb: "clearBrowsingData", profile: "work-profile" },
-    { domain: "profiles", verb: "clearContainerStorage", profile: "work-profile" },
-    { domain: "profiles", verb: "clearContainerStorage", profile: "work-profile" },
+    ...containerIds.map(() => ({ domain: "profiles", verb: "clearContainerStorage", profile: "work-profile" })),
   ]);
   assert.deepEqual(containerStorageCalls, [
-    { profile: "work-profile", containerId: Object.keys(useBrowser.getState().containers)[0], since: 1234 },
-    { profile: "work-profile", containerId: Object.keys(useBrowser.getState().containers)[1], since: 1234 },
+    ...containerIds.map((containerId) => ({ profile: "work-profile", containerId, since: 1234 })),
   ]);
 });
 
