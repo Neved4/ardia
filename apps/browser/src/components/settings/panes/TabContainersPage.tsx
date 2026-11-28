@@ -103,7 +103,7 @@ export function TabContainersPage() {
                 title={container.name}
                 description={isRemoving ? "Clearing this container’s cookies and site data…" : canDelete ? undefined : "A tab or recently closed item still uses this container."}
               >
-                <View style={{ flexDirection: "row", alignItems: "center", gap: space.s }}>
+                <View style={{ flexDirection: "row", alignItems: "center", gap: space.xxs }}>
                   <Button
                     variant="icon"
                     icon="pencil"

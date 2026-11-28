@@ -168,7 +168,7 @@ export const TabRow = memo(function TabRow({
         <>
           <RowHoverFill cell={cell} pressed={pressed} color={pressed ? pressedFill : hoverFill} radius={radius.chrome} />
           {surface}
-          {container ? <View pointerEvents="none" style={{ position: "absolute", right: 4, top: 6, bottom: 6, width: 3, borderRadius: 2, backgroundColor: PROFILE_COLORS[container.color].swatch }} /> : null}
+          {container ? <View pointerEvents="none" style={{ position: "absolute", right: 7, top: 6, bottom: 6, width: 3, borderRadius: 2, backgroundColor: PROFILE_COLORS[container.color].swatch }} /> : null}
           {previewFade(preview, <>
             {iconSlot}
             {pip && (

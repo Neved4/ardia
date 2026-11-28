@@ -190,7 +190,7 @@ export const TabChip = memo(function TabChip({ tabId, width, drawn, tuck, dragge
     <ThemeOverride theme={theme}>
       <Animated.View {...chipHover.hoverProps} style={{ width: drawn ?? width, height: TOP_STRIP_HEIGHT }}>
         {active && <SelectedTab width={drawn ?? width} band={band} opaque={dragged} />}
-        {container ? <View pointerEvents="none" style={{ position: "absolute", left: 8, right: 8, top: TAB_TOP + 1, height: 2, borderRadius: 1, backgroundColor: PROFILE_COLORS[container.color].swatch }} /> : null}
+        {container ? <View pointerEvents="none" style={{ position: "absolute", left: 8, right: 8, top: TAB_TOP + 4, height: 2, borderRadius: 1, backgroundColor: PROFILE_COLORS[container.color].swatch }} /> : null}
         {dragged && !active && (
           <View pointerEvents="none" style={[{ position: "absolute", left: 0, width, top: ITEM_TOP, height: ITEM_HEIGHT, backgroundColor: theme.windowTint[0] }, continuousCorners(tabRadius())]} />
         )}
