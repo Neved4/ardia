@@ -1,28 +1,21 @@
 import { View } from "react-native";
-import type { WebsiteContainer } from "../../state/browser/types";
-import { useSettings } from "../../state/browser/hooks";
-import { PROFILE_COLORS } from "../ui/theme";
-import { containerTabIndicatorKind } from "../../state/settings/containerTabAppearance";
+import { containerDotLayout } from "../sidebar/engineMarkLayout";
 
-export function ContainerTabIndicator({ container, cutoutColor }: {
-  container: WebsiteContainer;
+export function ContainerTabIndicator({ color, cutoutColor, size }: {
+  color: string;
   cutoutColor: string;
+  size: number;
 }) {
-  const setting = useSettings((settings) => settings.containerTabIndicator);
-  const kind = containerTabIndicatorKind(setting);
-  const swatch = PROFILE_COLORS[container.color].swatch;
-  if (kind === "dot") return (
-    <View pointerEvents="none" accessible={false} style={[CUTOUT, { backgroundColor: cutoutColor }]}>
-      <View style={[DOT, { backgroundColor: swatch }]} />
+  const dotLayout = containerDotLayout(size);
+  return (
+    <View pointerEvents="none" accessible={false} style={[CUTOUT, dotLayout, { backgroundColor: cutoutColor }]}>
+      <View style={[DOT, { backgroundColor: color }]} />
     </View>
   );
-  return null;
 }
 
 const CUTOUT = {
   position: "absolute",
-  right: -7,
-  bottom: -7,
   width: 11,
   height: 11,
   borderRadius: 6,

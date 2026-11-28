@@ -46,7 +46,6 @@ import { TOGGLE_MS, toggleEase } from "./stripToggle";
 import { reduceMotion } from "../ui/reduceMotion";
 import { useWebsiteContainer } from "../../state/containers/hooks";
 import { usePageEngine } from "../../state/engines/hooks";
-import { ContainerTabIndicator } from "../containers/ContainerTabIndicator";
 
 export const DraggableChip = memo(function DraggableChip({
   tabId,
@@ -222,10 +221,16 @@ export const TabChip = memo(function TabChip({ tabId, width, drawn, tuck, dragge
               badge={<UnreadCount unread={unread} ink={ink} />}
             >
               <View pointerEvents="none">
-                <View style={{ position: "relative", alignSelf: "flex-start" }}>
-                  <TabIcon tabId={tab.id} url={tab.url} favicon={tab.favicon} icon={tab.customIcon} color={active ? ink : undefined} containerEngine={container && containerTabIndicator === "engine" ? pageEngine : undefined} containerEngineColor={container ? PROFILE_COLORS[container.color].swatch : undefined} />
-                  {container && showContainerDot ? <ContainerTabIndicator container={container} cutoutColor={active ? (onBand && palette.background ? palette.background : theme.card) : theme.windowTint[0]} /> : null}
-                </View>
+                <TabIcon
+                  tabId={tab.id}
+                  url={tab.url}
+                  favicon={tab.favicon}
+                  icon={tab.customIcon}
+                  color={active ? ink : undefined}
+                  containerEngine={container && containerTabIndicator === "engine" ? pageEngine : undefined}
+                  containerEngineColor={container ? PROFILE_COLORS[container.color].swatch : undefined}
+                  containerDot={container && showContainerDot ? { color: PROFILE_COLORS[container.color].swatch, cutoutColor: active ? (onBand && palette.background ? palette.background : theme.card) : theme.windowTint[0] } : undefined}
+                />
                 <TabBadges tabId={tab.id} />
                 {compact && (playing || mute) ? <AudioBadge mute={mute} color={theme.textTab} plate={theme.windowTint[0]} /> : null}
               </View>

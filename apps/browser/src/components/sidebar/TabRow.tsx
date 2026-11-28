@@ -46,7 +46,6 @@ import type { SplitDropSide } from "../../state/drag/drops";
 import { buttonMotion, usePressScaleMotion } from "../ui/motion";
 import { useWebsiteContainer } from "../../state/containers/hooks";
 import { usePageEngine } from "../../state/engines/hooks";
-import { ContainerTabIndicator } from "../containers/ContainerTabIndicator";
 
 export const TabRowItem = memo(function TabRowItem({
   tabId,
@@ -140,10 +139,7 @@ export const TabRow = memo(function TabRow({
                       </View>
                     ) : (
                       <View>
-                        <View style={{ position: "relative", alignSelf: "flex-start" }}>
-                          <RowTabIcon tabId={shown.id} url={shown.url} favicon={shown.favicon} icon={shown.customIcon} profileId={shown.profileId} marks={iconMarks & ICON_MARKS} sleeping={!!(iconMarks & SLEEPING)} compact={quiet} containerEngine={container && containerTabIndicator === "engine" ? pageEngine : undefined} containerEngineColor={container ? PROFILE_COLORS[container.color].swatch : undefined} />
-                          {container && showContainerDot ? <ContainerTabIndicator container={container} cutoutColor={fill !== ink.clear ? fill : theme.windowTint[0]} /> : null}
-                        </View>
+                        <RowTabIcon tabId={shown.id} url={shown.url} favicon={shown.favicon} icon={shown.customIcon} profileId={shown.profileId} marks={iconMarks & ICON_MARKS} sleeping={!!(iconMarks & SLEEPING)} compact={quiet} containerEngine={container && containerTabIndicator === "engine" ? pageEngine : undefined} containerEngineColor={container ? PROFILE_COLORS[container.color].swatch : undefined} containerDot={container && showContainerDot ? { color: PROFILE_COLORS[container.color].swatch, cutoutColor: fill !== ink.clear ? fill : theme.windowTint[0] } : undefined} />
                         {badged ? <TabBadges tabId={shown.id} /> : null}
                       </View>
                     )}
@@ -151,10 +147,7 @@ export const TabRow = memo(function TabRow({
                 </Pressable>
               ) : (
                 <>
-                  <View style={{ position: "relative", alignSelf: "flex-start" }}>
-                    <RowTabIcon tabId={shown.id} url={shown.url} favicon={shown.favicon} icon={shown.customIcon} profileId={shown.profileId} marks={iconMarks & ICON_MARKS} sleeping={!!(iconMarks & SLEEPING)} compact={quiet} containerEngine={container && containerTabIndicator === "engine" ? pageEngine : undefined} containerEngineColor={container ? PROFILE_COLORS[container.color].swatch : undefined} />
-                    {container && showContainerDot ? <ContainerTabIndicator container={container} cutoutColor={fill !== ink.clear ? fill : theme.windowTint[0]} /> : null}
-                  </View>
+                  <RowTabIcon tabId={shown.id} url={shown.url} favicon={shown.favicon} icon={shown.customIcon} profileId={shown.profileId} marks={iconMarks & ICON_MARKS} sleeping={!!(iconMarks & SLEEPING)} compact={quiet} containerEngine={container && containerTabIndicator === "engine" ? pageEngine : undefined} containerEngineColor={container ? PROFILE_COLORS[container.color].swatch : undefined} containerDot={container && showContainerDot ? { color: PROFILE_COLORS[container.color].swatch, cutoutColor: fill !== ink.clear ? fill : theme.windowTint[0] } : undefined} />
                   {badged ? <TabBadges tabId={shown.id} /> : null}
                 </>
               )}

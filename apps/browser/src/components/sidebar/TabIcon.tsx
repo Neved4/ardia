@@ -10,6 +10,10 @@ import { FADED, markedEngine, useIconMarks } from "../../state/sidebar/rowState"
 import { iconSymbol } from "../../lib/customIcon";
 import { drawnIcon } from "../../state/pins/rowIcons";
 import { Favicon } from "../favicon/Favicon";
+import { engineMarkLayout } from "./engineMarkLayout";
+import { ContainerTabIndicator } from "../containers/ContainerTabIndicator";
+
+type ContainerDot = { color: string; cutoutColor: string };
 
 export const TabIcon = memo(function TabIcon({
   tabId,
@@ -24,6 +28,7 @@ export const TabIcon = memo(function TabIcon({
   marks: givenMarks,
   containerEngine,
   containerEngineColor,
+  containerDot,
 }: {
   tabId?: string;
   url: string;
@@ -37,10 +42,19 @@ export const TabIcon = memo(function TabIcon({
   marks?: number;
   containerEngine?: PageEngine;
   containerEngineColor?: string;
+  containerDot?: ContainerDot;
 }) {
   const sleeping = useIsSleeping(tabId ?? "");
   const marks = useIconMarks(tabId, givenMarks);
-  return tabIconView({ tabId, url, favicon, icon, size: useIconSize(compact, givenSize), color, profile, direct, marks, sleeping, containerEngine, containerEngineColor });
+  const size = useIconSize(compact, givenSize);
+  const iconView = tabIconView({ tabId, url, favicon, icon, size, color, profile, direct, marks, sleeping, containerEngine, containerEngineColor });
+  if (!containerDot) return iconView;
+  return (
+    <View style={{ position: "relative", alignSelf: "flex-start" }}>
+      {iconView}
+      <ContainerTabIndicator {...containerDot} size={size} />
+    </View>
+  );
 });
 
 export const RowTabIcon = memo(function RowTabIcon({
@@ -57,6 +71,7 @@ export const RowTabIcon = memo(function RowTabIcon({
   sleeping,
   containerEngine,
   containerEngineColor,
+  containerDot,
 }: {
   tabId?: string;
   url: string;
@@ -71,8 +86,17 @@ export const RowTabIcon = memo(function RowTabIcon({
   sleeping: boolean;
   containerEngine?: PageEngine;
   containerEngineColor?: string;
+  containerDot?: ContainerDot;
 }) {
-  return tabIconView({ tabId, url, favicon, icon, size: useIconSize(compact, givenSize), color, profile, direct, marks, sleeping, containerEngine, containerEngineColor });
+  const size = useIconSize(compact, givenSize);
+  const iconView = tabIconView({ tabId, url, favicon, icon, size, color, profile, direct, marks, sleeping, containerEngine, containerEngineColor });
+  if (!containerDot) return iconView;
+  return (
+    <View style={{ position: "relative", alignSelf: "flex-start" }}>
+      {iconView}
+      <ContainerTabIndicator {...containerDot} size={size} />
+    </View>
+  );
 });
 
 function useIconSize(compact: boolean, givenSize: number | undefined) {
@@ -122,15 +146,15 @@ function tabIconView({
 
 export function EngineMark({ mark, size, color }: { mark: PageEngine; size: number; color?: string }) {
   const theme = useTheme();
-  const box = Math.round(size * 0.6);
+  const { box, offset } = engineMarkLayout(size);
   return (
     <View
       pointerEvents="none"
       accessibilityLabel={`Opens in ${ENGINE_NAMES[mark]}`}
       style={{
         position: "absolute",
-        right: -box / 3,
-        bottom: -box / 3,
+        right: -offset,
+        bottom: -offset,
         width: box,
         height: box,
         borderRadius: box / 2,

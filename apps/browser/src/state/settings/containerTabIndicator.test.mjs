@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 const { DEFAULT_SETTINGS, SETTING_SPECS, parseSettings } = await import("./settings.ts");
 const { CONTAINER_TAB_INDICATORS, containerTabIndicatorKind } = await import("./containerTabAppearance.ts");
+const { containerDotLayout, engineMarkLayout } = await import("../../components/sidebar/engineMarkLayout.ts");
 
 test("tab indicator has one synced choice and defaults to Dot", () => {
   const key = "containerTabIndicator";
@@ -13,4 +14,12 @@ test("tab indicator has one synced choice and defaults to Dot", () => {
 
 test("each single-choice mode selects exactly its matching tab mark", () => {
   assert.deepEqual(CONTAINER_TAB_INDICATORS.map(containerTabIndicatorKind), ["dot", "line", "engine"]);
+});
+
+test("container dots use the existing engine mark position", () => {
+  for (const size of [14, 16, 20, 24]) {
+    const { diameter, right } = containerDotLayout(size);
+    const { box, offset } = engineMarkLayout(size);
+    assert.ok(Math.abs((-right - diameter / 2) - (offset - box / 2)) < 1e-9);
+  }
 });
